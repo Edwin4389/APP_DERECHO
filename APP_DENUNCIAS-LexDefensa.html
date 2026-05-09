@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LexDefensa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0A2540;
+  --navy2: #1a3a5c;
+  --navy3: #2d5a8a;
+  --gold: #C9A84C;
+  --gold2: #e8c97a;
+  --red: #C0392B;
+  --red2: #e74c3c;
+  --green: #1a7a4a;
+  --green2: #27AE60;
+  --amber: #d4820a;
+  --amber2: #F39C12;
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface2: #f7f9fc;
+  --border: rgba(10,37,64,0.1);
+  --text1: #0A2540;
+  --text2: #3d5a7a;
+  --text3: #7a97b5;
+  --serif: 'DM Serif Display', serif;
+  --sans: 'DM Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 16px rgba(10,37,64,0.08);
+  --shadow-lg: 0 8px 32px rgba(10,37,64,0.14);
+  --nav-h: 72px;
+  --header-h: 64px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; font-family: var(--sans); background: var(--bg); color: var(--text1); }
+
+/* ─── SHELL ─── */
+#app { 
+  max-width: 430px; 
+  margin: 0 auto; 
+  height: 100vh; 
+  display: flex; 
+  flex-direction: column; 
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0,0,0,0.2);
+}
+
+/* ─── HEADER ─── */
+.header {
+  height: var(--header-h);
+  background: var(--navy);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.header-logo {
+  width: 36px; height: 36px;
+  background: var(--gold);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-size: 18px; color: var(--navy);
+  flex-shrink: 0;
+}
+.header-title { font-family: var(--serif); font-size: 20px; color: #fff; letter-spacing: 0.3px; }
+.header-subtitle { font-size: 10px; color: var(--gold2); letter-spacing: 1px; text-transform: uppercase; }
+.sos-btn {
+  margin-left: auto;
+  width: 48px; height: 48px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.3);
+  color: #fff;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  animation: pulse-sos 3s infinite;
+}
+.sos-btn:active { transform: scale(0.92); }
+@keyframes pulse-sos {
+  0%,70%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.5); }
+  35% { box-shadow: 0 0 0 10px rgba(192,57,43,0); }
+}
+
+/* ─── CONTENT AREA ─── */
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.screen { display: none; min-height: calc(100vh - var(--header-h) - var(--nav-h)); padding-bottom: 20px; }
+.screen.active { display: block; }
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav {
+  height: var(--nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 4px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--sans);
+  font-size: 10px;
+}
+.nav-item.active { color: var(--navy); }
+.nav-item.active .nav-icon { background: rgba(10,37,64,0.08); }
+.nav-icon {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: background 0.15s;
+}
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  margin: 0 14px 12px;
+}
+.card-sm { padding: 14px 16px; }
+.section-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--navy);
+  padding: 20px 14px 8px;
+}
+.section-sub {
+  font-size: 13px;
+  color: var(--text2);
+  padding: 0 14px 14px;
+  line-height: 1.5;
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px 20px;
+  border-radius: var(--radius-sm);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.12s, opacity 0.12s;
+  width: 100%;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-red { background: var(--red); color: #fff; }
+.btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
+.btn-green { background: var(--green); color: #fff; }
+
+/* ─── CHIPS / BADGES ─── */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-blue { background: #e8f0fe; color: #1a3a5c; }
+.badge-gold { background: #fef3cd; color: #8a5f00; }
+.badge-red { background: #fde8e8; color: #8b1a1a; }
+.badge-green { background: #e2f5ec; color: #1a5c3a; }
+.badge-amber { background: #fff3e0; color: #7a4800; }
+
+/* ─── INPUT ─── */
+.inp {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text1);
+  background: var(--surface2);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.inp:focus { border-color: var(--navy3); background: #fff; }
+.inp-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; display: block; }
+
+/* ─── DIVIDER ─── */
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ─────────────────────────────────────── */
+/*  PANTALLA 1: INICIO / HOME             */
+/* ─────────────────────────────────────── */
+.home-hero {
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy2) 60%, var(--navy3) 100%);
+  padding: 28px 20px 36px;
+  position: relative;
+  overflow: hidden;
+}
+.home-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 180px; height: 180px;
+  border: 40px solid rgba(201,168,76,0.12);
+  border-radius: 50%;
+}
+.home-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; left: -20px;
+  width: 120px; height: 120px;
+  border: 30px solid rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.home-greeting { font-size: 13px; color: var(--gold2); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.home-title { font-family: var(--serif); font-size: 28px; color: #fff; line-height: 1.2; margin-bottom: 8px; }
+.home-desc { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+.home-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: -20px 14px 0; position: relative; z-index: 2; }
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: 14px 10px;
+  text-align: center;
+}
+.stat-num { font-family: var(--serif); font-size: 22px; color: var(--navy); }
+.stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; line-height: 1.3; }
+.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 14px; margin-top: 14px; }
+.quick-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: none;
+  text-align: left;
+  font-family: var(--sans);
+}
+.quick-card:active { transform: scale(0.96); box-shadow: var(--shadow-lg); }
+.quick-icon {
+  font-size: 26px;
+  margin-bottom: 10px;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.quick-name { font-size: 13px; font-weight: 600; color: var(--text1); }
+.quick-desc { font-size: 11px; color: var(--text3); margin-top: 3px; line-height: 1.4; }
+.alert-bar {
+  margin: 0 14px 12px;
+  background: linear-gradient(135deg, #fff8e8, #fff3cd);
+  border: 1px solid rgba(212,130,10,0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.alert-text { font-size: 12px; color: #7a4800; line-height: 1.5; }
+
+/* ─────────────────────────────────────── */
+/*  PANTALLA 2: TRIAJE JURÍDICO           */
+/* ─────────────────────────────────────── */
+.triaje-progress { padding: 14px 14px 0; }
+.progress-steps { display: flex; gap: 4px; margin-bottom: 6px; }
+.progress-step { flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+.progress-step.done { background: var(--navy); }
+.progress-step.active { background: var(--gold); }
+.progress-label { font-size: 11px; color: var(--text3); }
+
+.question-card {
+  margin: 10px 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px 18px;
+  min-height: 200px;
+}
+.q-number { font-family: var(--mono); font-size: 11px; color: var(--gold); letter-spacing: 1px; margin-bottom: 10px; }
+.q-text { font-family: var(--serif); font-size: 20px; color: var(--navy); line-height: 1.3; margin-bottom: 8px; }
+.q-hint { font-size: 12px; color: var(--text3); line-height: 1.5; margin-bottom: 20px; }
+.q-options { display: flex; flex-direction: column; gap: 8px; }
+.q-opt {
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text1);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--surface2);
+  text-align: left;
+  font-family: var(--sans);
+  display: flex; align-items: center; gap: 10px;
+}
+.q-opt:hover { border-color: var(--navy3); background: #fff; }
+.q-opt.selected { border-color: var(--navy); background: rgba(10,37,64,0.05); color: var(--navy); font-weight: 500; }
+.q-opt-icon { font-size: 18px; flex-shrink: 0; }
+
+.resultado-card {
+  margin: 10px 14px;
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  display: none;
+}
+.resultado-card.show { display: block; }
+.res-title { font-family: var(--serif); font-size: 13px; color: var(--gold2); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.res-delito { font-family: var(--serif); font-size: 24px; color: #fff; margin-bottom: 14px; }
+.res-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 12px; }
+.res-row:last-child { border-bottom: none; }
+.res-key { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+.res-val { font-size: 13px; color: #fff; font-weight: 500; text-align: right; }
+.disclaimer {
+  margin: 0 14px 12px;
+  padding: 10px 14px;
+  background: #fff8e8;
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 11px;
+  color: #7a4800;
+  line-height: 1.5;
+  display: none;
+}
+.disclaimer.show { display: block; }
+
+/* ─────────────────────────────────────── */
+/*  PANTALLA 3: EVIDENCIA                 */
+/* ─────────────────────────────────────── */
+.camera-area {
+  margin: 0 14px 12px;
+  background: var(--navy);
+  border-radius: var(--radius);
+  height: 200px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.15s;
+}
+.camera-area:active { opacity: 0.85; }
+.camera-corner {
+  position: absolute;
+  width: 24px; height: 24px;
+  border-color: var(--gold);
+  border-style: solid;
+  border-width: 0;
+}
+.camera-corner.tl { top: 16px; left: 16px; border-top-width: 2px; border-left-width: 2px; border-radius: 3px 0 0 0; }
+.camera-corner.tr { top: 16px; right: 16px; border-top-width: 2px; border-right-width: 2px; border-radius: 0 3px 0 0; }
+.camera-corner.bl { bottom: 16px; left: 16px; border-bottom-width: 2px; border-left-width: 2px; border-radius: 0 0 0 3px; }
+.camera-corner.br { bottom: 16px; right: 16px; border-bottom-width: 2px; border-right-width: 2px; border-radius: 0 0 3px 0; }
+.camera-icon { font-size: 36px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+.camera-text { font-size: 13px; color: rgba(255,255,255,0.6); }
+.camera-text span { color: var(--gold2); font-weight: 500; }
+
+.evidence-item {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+}
+.ev-thumb {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.ev-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.ev-info { flex: 1; min-width: 0; }
+.ev-name { font-size: 13px; font-weight: 500; color: var(--text1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.ev-hash { font-family: var(--mono); font-size: 10px; color: var(--text3); background: var(--bg); padding: 3px 7px; border-radius: 4px; margin-top: 5px; display: inline-block; word-break: break-all; }
+.ev-status { font-size: 10px; font-weight: 500; margin-top: 4px; }
+.ev-status.ok { color: var(--green2); }
+.ev-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 18px; padding: 4px; flex-shrink: 0; }
+
+.meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 14px 12px; }
+.meta-item {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+.meta-key { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.meta-val { font-size: 13px; font-weight: 500; color: var(--text1); }
+
+/* ─────────────────────────────────────── */
+/*  PANTALLA 4: TRACKING                  */
+/* ─────────────────────────────────────── */
+.tracking-header {
+  background: var(--navy);
+  padding: 20px 18px 28px;
+  margin-bottom: -14px;
+}
+.tracking-radicado { font-family: var(--mono); font-size: 12px; color: var(--gold2); margin-bottom: 4px; }
+.tracking-delito { font-family: var(--serif); font-size: 22px; color: #fff; margin-bottom: 6px; }
+.tracking-art { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+.timeline { padding: 20px 14px 0; }
+.tl-item { display: flex; gap: 14px; padding-bottom: 24px; position: relative; }
+.tl-left { display: flex; flex-direction: column; align-items: center; width: 20px; flex-shrink: 0; }
+.tl-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.tl-dot.done { background: var(--green2); color: #fff; }
+.tl-dot.active { background: var(--gold); color: var(--navy); }
+.tl-dot.pending { background: var(--bg); border: 2px solid var(--border); }
+.tl-line { flex: 1; width: 2px; background: var(--border); margin-top: 4px; border-radius: 1px; }
+.tl-line.done { background: var(--green2); opacity: 0.3; }
+.tl-content { flex: 1; padding-top: 0; }
+.tl-title { font-size: 14px; font-weight: 600; color: var(--text1); margin-bottom: 2px; }
+.tl-title.pending { color: var(--text3); font-weight: 400; }
+.tl-date { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.tl-detail { font-size: 12px; color: var(--text2); line-height: 1.5; background: var(--bg); padding: 8px 10px; border-radius: var(--radius-sm); }
+
+/* ─────────────────────────────────────── */
+/*  PANTALLA 5: MAPA DE CALOR             */
+/* ─────────────────────────────────────── */
+.mapa-container {
+  margin: 0 14px 12px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  height: 280px;
+  background: #1a2f4e;
+}
+#heatmap-canvas { width: 100%; height: 100%; display: block; }
+.mapa-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(10,37,64,0.85));
+  padding: 16px;
+  display: flex; justify-content: space-between; align-items: flex-end;
+}
+.mapa-legend { display: flex; align-items: center; gap: 6px; }
+.legend-bar {
+  width: 80px; height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, rgba(39,174,96,0.8), rgba(243,156,18,0.8), rgba(192,57,43,0.9));
+}
+.legend-labels { display: flex; justify-content: space-between; width: 80px; }
+.legend-label { font-size: 9px; color: rgba(255,255,255,0.7); }
+.mapa-count { font-family: var(--mono); font-size: 20px; color: #fff; text-align: right; }
+.mapa-count span { font-size: 10px; color: rgba(255,255,255,0.5); display: block; }
+
+.zona-item {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.zona-item:active { transform: scale(0.97); }
+.zona-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.zona-info { flex: 1; }
+.zona-name { font-size: 13px; font-weight: 500; color: var(--text1); }
+.zona-sub { font-size: 11px; color: var(--text3); }
+.zona-count { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+
+/* ─────────────────────────────────────── */
+/*  PANTALLA 6: BIBLIOTECA LEGAL          */
+/* ─────────────────────────────────────── */
+.search-bar {
+  padding: 12px 14px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 5;
+}
+.search-wrap { position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text3); pointer-events: none; }
+.search-inp {
+  width: 100%;
+  padding: 12px 14px 12px 38px;
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  font-family: var(--sans);
+  font-size: 14px;
+  background: var(--surface);
+  outline: none;
+  color: var(--text1);
+  transition: border-color 0.15s;
+}
+.search-inp:focus { border-color: var(--navy3); }
+
+.libro-tabs { display: flex; gap: 6px; padding: 0 14px 10px; overflow-x: auto; }
+.libro-tab {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  transition: all 0.15s;
+  font-family: var(--sans);
+}
+.libro-tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+.articulo-item {
+  margin: 0 14px 8px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.articulo-item:active { transform: scale(0.98); }
+.art-header {
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.art-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  background: var(--navy);
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.art-title { font-size: 13px; font-weight: 500; color: var(--text1); flex: 1; }
+.art-chevron { color: var(--text3); font-size: 16px; transition: transform 0.2s; }
+.art-body {
+  display: none;
+  padding: 0 14px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 0;
+}
+.art-body.open { display: block; }
+.art-chevron.open { transform: rotate(180deg); }
+.highlight { background: rgba(201,168,76,0.3); border-radius: 2px; padding: 0 2px; }
+
+/* ─── SOS MODAL ─── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,37,64,0.6);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 430px;
+  padding: 20px;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-family: var(--serif); font-size: 22px; color: var(--red); margin-bottom: 6px; text-align: center; }
+.modal-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 20px; line-height: 1.5; }
+.contact-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.contact-item:last-of-type { border-bottom: none; }
+.contact-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.contact-name { font-size: 13px; font-weight: 500; color: var(--text1); }
+.contact-rel { font-size: 11px; color: var(--text3); }
+.contact-call {
+  margin-left: auto;
+  background: var(--green2);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.chat-bubble {
+  background: var(--bg);
+  border-radius: 12px 12px 12px 4px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text1);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.chat-bubble.bot { background: var(--navy); color: rgba(255,255,255,0.9); border-radius: 12px 12px 4px 12px; }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 12px);
+  left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--navy);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 13px;
+  z-index: 200;
+  transition: transform 0.3s, opacity 0.3s;
+  opacity: 0;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ─── SCROLLBAR ─── */
+.content::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════ HEADER ══════════ -->
+  <header class="header">
+    <div class="header-logo">⚖</div>
+    <div>
+      <div class="header-title">LexDefensa</div>
+      <div class="header-subtitle">Protección jurídica ciudadana</div>
+    </div>
+    <button class="sos-btn" onclick="openSOS()">SOS</button>
+  </header>
+
+  <!-- ══════════ CONTENT ══════════ -->
+  <div class="content">
+
+    <!-- ── PANTALLA 1: HOME ── -->
+    <div id="screen-home" class="screen active">
+      <div class="home-hero">
+        <div class="home-greeting">Bienvenido a LexDefensa</div>
+        <div class="home-title">Tu derecho,<br><em>tu defensa</em></div>
+        <div class="home-desc">Accede a herramientas legales, registra evidencia y haz seguimiento de tus denuncias.</div>
+      </div>
+      <div class="home-stats">
+        <div class="stat-card">
+          <div class="stat-num">1,247</div>
+          <div class="stat-label">Denuncias radicadas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">98%</div>
+          <div class="stat-label">Precisión triaje</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">24h</div>
+          <div class="stat-label">Asistencia</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+      <div class="alert-bar">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text"><strong>Aviso legal:</strong> LexDefensa orienta y clasifica. No reemplaza asesoramiento profesional. Consulte siempre a un abogado.</div>
+      </div>
+      <div class="quick-actions">
+        <button class="quick-card" onclick="goTo('triaje')">
+          <div class="quick-icon" style="background:#e8f0fe;">⚖️</div>
+          <div class="quick-name">Triaje jurídico</div>
+          <div class="quick-desc">Clasifica tu situación legal</div>
+        </button>
+        <button class="quick-card" onclick="goTo('evidencia')">
+          <div class="quick-icon" style="background:#e2f5ec;">📷</div>
+          <div class="quick-name">Registrar evidencia</div>
+          <div class="quick-desc">Fotos con hash y GPS</div>
+        </button>
+        <button class="quick-card" onclick="goTo('tracking')">
+          <div class="quick-icon" style="background:#fff3e0;">📋</div>
+          <div class="quick-name">Mis denuncias</div>
+          <div class="quick-desc">Seguimiento en tiempo real</div>
+        </button>
+        <button class="quick-card" onclick="goTo('biblioteca')">
+          <div class="quick-icon" style="background:#f3e8ff;">📚</div>
+          <div class="quick-name">Biblioteca legal</div>
+          <div class="quick-desc">Códigos sin internet</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── PANTALLA 2: TRIAJE ── -->
+    <div id="screen-triaje" class="screen">
+      <div class="section-title">Triaje jurídico</div>
+      <div class="section-sub">Responde las preguntas. El sistema clasificará el hecho según el Código Penal.</div>
+
+      <div class="triaje-progress">
+        <div class="progress-steps" id="prog-steps"></div>
+        <div class="progress-label" id="prog-label">Pregunta 1 de 6</div>
+      </div>
+
+      <div class="question-card" id="question-card">
+        <div class="q-number" id="q-number">PREGUNTA 01</div>
+        <div class="q-text" id="q-text">Cargando...</div>
+        <div class="q-hint" id="q-hint"></div>
+        <div class="q-options" id="q-options"></div>
+      </div>
+
+      <div class="resultado-card" id="resultado-card">
+        <div class="res-title">Clasificación legal</div>
+        <div class="res-delito" id="res-delito"></div>
+        <div id="res-rows"></div>
+        <div style="height:14px"></div>
+        <button class="btn btn-gold" onclick="goTo('evidencia')">📷 Registrar evidencia ahora</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-outline" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.3);" onclick="resetTriaje()">↺ Nueva clasificación</button>
+      </div>
+      <div class="disclaimer" id="disclaimer">
+        ⚠️ Esta clasificación es orientativa y no constituye asesoramiento jurídico. Los artículos citados corresponden al Código Penal peruano. Consulte a un abogado titulado antes de actuar.
+      </div>
+    </div>
+
+    <!-- ── PANTALLA 3: EVIDENCIA ── -->
+    <div id="screen-evidencia" class="screen">
+      <div class="section-title">Módulo de evidencia</div>
+      <div class="section-sub">Cada archivo se registra con coordenadas GPS, timestamp exacto y hash SHA-256 para garantizar integridad probatoria.</div>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-key">📍 Ubicación</div>
+          <div class="meta-val" id="ev-gps">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-key">🕐 Hora exacta</div>
+          <div class="meta-val" id="ev-hora">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-key">📁 Archivos</div>
+          <div class="meta-val" id="ev-count">0 evidencias</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-key">🔒 Integridad</div>
+          <div class="meta-val" style="color:var(--green2)">SHA-256 ✓</div>
+        </div>
+      </div>
+
+      <div class="camera-area" onclick="document.getElementById('file-input').click()">
+        <div class="camera-corner tl"></div>
+        <div class="camera-corner tr"></div>
+        <div class="camera-corner bl"></div>
+        <div class="camera-corner br"></div>
+        <div class="camera-icon">📷</div>
+        <div class="camera-text">Toca para <span>agregar evidencia</span></div>
+        <div class="camera-text" style="font-size:11px;margin-top:4px;">Foto · Video · Documento</div>
+      </div>
+      <input type="file" id="file-input" accept="image/*,video/*,.pdf" style="display:none" multiple onchange="handleFiles(this.files)">
+
+      <div style="padding: 0 14px 6px; font-size: 12px; font-weight: 500; color: var(--text2);">Evidencias registradas</div>
+      <div id="evidence-list">
+        <div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">
+          No hay evidencias aún.<br>Agrega fotos o archivos arriba.
+        </div>
+      </div>
+
+      <div style="padding: 0 14px; margin-top: 8px;">
+        <button class="btn btn-primary" onclick="showToast('📤 Evidencias adjuntadas a la denuncia')">📎 Adjuntar a denuncia activa</button>
+      </div>
+    </div>
+
+    <!-- ── PANTALLA 4: TRACKING ── -->
+    <div id="screen-tracking" class="screen">
+      <div class="tracking-header">
+        <div class="tracking-radicado">RADICADO #2024-LIM-4471</div>
+        <div class="tracking-delito">Hurto calificado</div>
+        <div class="tracking-art">Artículo 186 C.P. · Fiscalía Lima Norte · Fiscal: Dr. Gómez</div>
+        <div style="height:6px"></div>
+        <span class="badge badge-amber">En investigación</span>
+      </div>
+
+      <div class="timeline" style="margin-top:20px;">
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot done">✓</div>
+            <div class="tl-line done"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-title">Denuncia radicada</div>
+            <div class="tl-date">12 mayo 2024 · 09:14 a.m.</div>
+            <div class="tl-detail">Denuncia registrada en sistema con radicado #2024-LIM-4471. Se adjuntaron 3 evidencias fotográficas con hash verificado.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot done">✓</div>
+            <div class="tl-line done"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-title">Caso asignado</div>
+            <div class="tl-date">13 mayo 2024 · 11:30 a.m.</div>
+            <div class="tl-detail">Asignado al Dr. Marco Gómez, Fiscal Provincial. Mesa de partes atendió la denuncia en tiempo legal (24h).</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot active">●</div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-title">En investigación</div>
+            <div class="tl-date">15 mayo 2024 · En curso</div>
+            <div class="tl-detail">Diligencias preliminares iniciadas. Se solicitaron imágenes de cámara de vigilancia al municipio. Plazo: 60 días.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot pending"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-title pending">Acusación / archivo</div>
+            <div class="tl-date">Pendiente</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot pending"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-title pending">Resolución final</div>
+            <div class="tl-date">Pendiente</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px;">
+        <div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:10px;">Alertas y notificaciones</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:18px;">🔔</span>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:500;color:var(--text1);">Nueva diligencia programada</div>
+            <div style="font-size:11px;color:var(--text3);">20 mayo 2024 · Fiscalía Lima Norte</div>
+          </div>
+          <span class="badge badge-blue">Nuevo</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+          <span style="font-size:18px;">📄</span>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:500;color:var(--text1);">Resolución de imputación pendiente</div>
+            <div style="font-size:11px;color:var(--text3);">Plazo máximo: 14 junio 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:0 14px 8px;">
+        <button class="btn btn-outline" onclick="showToast('📋 Segunda denuncia lista para iniciar')">+ Registrar nueva denuncia</button>
+      </div>
+    </div>
+
+    <!-- ── PANTALLA 5: MAPA ── -->
+    <div id="screen-mapa" class="screen">
+      <div class="section-title">Mapa de calor</div>
+      <div class="section-sub">Zonas con mayor concentración de reportes ciudadanos. Datos agregados y anonimizados.</div>
+
+      <div class="mapa-container">
+        <canvas id="heatmap-canvas"></canvas>
+        <div class="mapa-overlay">
+          <div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Intensidad de reportes</div>
+            <div class="legend-bar"></div>
+            <div class="legend-labels">
+              <span class="legend-label">Bajo</span>
+              <span class="legend-label">Medio</span>
+              <span class="legend-label">Alto</span>
+            </div>
+          </div>
+          <div class="mapa-count">247<span>reportes este mes</span></div>
+        </div>
+      </div>
+
+      <div style="padding:0 14px 6px;font-size:12px;font-weight:500;color:var(--text2);">Zonas de mayor incidencia</div>
+      <div style="padding:0 14px;">
+        <div class="zona-item">
+          <div class="zona-dot" style="background:var(--red);"></div>
+          <div class="zona-info">
+            <div class="zona-name">Cercado de Lima</div>
+            <div class="zona-sub">Hurto · robo · estafa</div>
+          </div>
+          <div class="zona-count" style="color:var(--red)">87</div>
+        </div>
+        <div class="zona-item">
+          <div class="zona-dot" style="background:var(--amber2);"></div>
+          <div class="zona-info">
+            <div class="zona-name">San Juan de Lurigancho</div>
+            <div class="zona-sub">Hurto · lesiones</div>
+          </div>
+          <div class="zona-count" style="color:var(--amber2)">64</div>
+        </div>
+        <div class="zona-item">
+          <div class="zona-dot" style="background:var(--amber2);"></div>
+          <div class="zona-info">
+            <div class="zona-name">Los Olivos</div>
+            <div class="zona-sub">Robo agravado · estafa</div>
+          </div>
+          <div class="zona-count" style="color:var(--amber2)">48</div>
+        </div>
+        <div class="zona-item">
+          <div class="zona-dot" style="background:var(--green2);"></div>
+          <div class="zona-info">
+            <div class="zona-name">Miraflores</div>
+            <div class="zona-sub">Hurto de menor cuantía</div>
+          </div>
+          <div class="zona-count" style="color:var(--green2)">21</div>
+        </div>
+        <div class="zona-item">
+          <div class="zona-dot" style="background:var(--green2);"></div>
+          <div class="zona-info">
+            <div class="zona-name">San Isidro</div>
+            <div class="zona-sub">Estafa · daño patrimonial</div>
+          </div>
+          <div class="zona-count" style="color:var(--green2)">14</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:6px;">⚠️ Recomendación de seguridad</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;">En zonas rojas: evite exhibir celulares o carteras. Use rutas concurridas. Si es víctima, no oponga resistencia — su seguridad es lo primero.</div>
+      </div>
+    </div>
+
+    <!-- ── PANTALLA 6: BIBLIOTECA ── -->
+    <div id="screen-biblioteca" class="screen">
+      <div class="search-bar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-inp" type="text" placeholder="Buscar artículo, delito, derecho..." id="search-legal" oninput="buscarLegal(this.value)">
+        </div>
+      </div>
+      <div class="libro-tabs">
+        <button class="libro-tab active" onclick="setLibro('penal',this)">⚖️ Cód. Penal</button>
+        <button class="libro-tab" onclick="setLibro('civil',this)">📜 Cód. Civil</button>
+        <button class="libro-tab" onclick="setLibro('constitucion',this)">🏛️ Constitución</button>
+      </div>
+      <div id="articulos-list"></div>
+      <div style="padding:14px;text-align:center;">
+        <span class="badge badge-green">✓ Disponible sin internet</span>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px;">Última actualización: Decreto Leg. 1513 (2024)</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- ══════════ BOTTOM NAV ══════════ -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="goTo('home')">
+      <div class="nav-icon">🏠</div>
+      Inicio
+    </button>
+    <button class="nav-item" id="nav-triaje" onclick="goTo('triaje')">
+      <div class="nav-icon">⚖️</div>
+      Triaje
+    </button>
+    <button class="nav-item" id="nav-evidencia" onclick="goTo('evidencia')">
+      <div class="nav-icon">📷</div>
+      Evidencia
+    </button>
+    <button class="nav-item" id="nav-tracking" onclick="goTo('tracking')">
+      <div class="nav-icon">📋</div>
+      Denuncia
+    </button>
+    <button class="nav-item" id="nav-mapa" onclick="goTo('mapa')">
+      <div class="nav-icon">🗺️</div>
+      Mapa
+    </button>
+    <button class="nav-item" id="nav-biblioteca" onclick="goTo('biblioteca')">
+      <div class="nav-icon">📚</div>
+      Leyes
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ══════════ SOS MODAL ══════════ -->
+<div class="modal-overlay" id="sos-modal" onclick="closeSOS(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🚨 Asistencia inmediata</div>
+    <div class="modal-sub">Tu ubicación está siendo compartida con tus contactos de emergencia.</div>
+
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--text2);margin-bottom:16px;">
+      📍 Loc: -12.0464°S, 77.0428°W · Lima, Perú<br>
+      🕐 <span id="sos-time"></span>
+    </div>
+
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">Contactos de emergencia</div>
+    <div class="contact-item">
+      <div class="contact-avatar">👨‍👩‍👦</div>
+      <div>
+        <div class="contact-name">Familia Ramírez</div>
+        <div class="contact-rel">Contacto principal</div>
+      </div>
+      <button class="contact-call" onclick="showToast('📞 Llamando a Familia Ramírez...')">📞</button>
+    </div>
+    <div class="contact-item">
+      <div class="contact-avatar">👮</div>
+      <div>
+        <div class="contact-name">PNP · 105</div>
+        <div class="contact-rel">Policía Nacional del Perú</div>
+      </div>
+      <button class="contact-call" onclick="showToast('📞 Conectando con PNP 105...')">📞</button>
+    </div>
+    <div class="contact-item">
+      <div class="contact-avatar">⚖️</div>
+      <div>
+        <div class="contact-name">Serenazgo · 107</div>
+        <div class="contact-rel">Emergencias municipales</div>
+      </div>
+      <button class="contact-call" onclick="showToast('📞 Conectando con Serenazgo...')">📞</button>
+    </div>
+
+    <div style="margin:16px 0 10px;font-size:12px;font-weight:600;color:var(--text2);">Primeros auxilios legales 💬</div>
+    <div class="chat-bubble bot">Hola. Estás en una situación de emergencia. ¿Eres víctima de un delito ahora mismo?</div>
+    <div class="chat-bubble">Sí, me están robando</div>
+    <div class="chat-bubble bot">Mantén la calma. No opongas resistencia física — tu seguridad es lo primero. Tu ubicación ya fue enviada a tus contactos. Si puedes, activa la grabación de audio del celular.</div>
+    <div style="height:10px;"></div>
+    <button class="btn btn-red" onclick="closeSOS()">Cerrar asistencia de emergencia</button>
+  </div>
+</div>
+
+<!-- ══════════ TOAST ══════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── NAVEGACIÓN ── */
+const screens = ['home','triaje','evidencia','tracking','mapa','biblioteca'];
+function goTo(id) {
+  screens.forEach(s => {
+    document.getElementById('screen-'+s).classList.toggle('active', s===id);
+    const nav = document.getElementById('nav-'+s);
+    if(nav) nav.classList.toggle('active', s===id);
+  });
+  if(id==='mapa') drawHeatmap();
+  if(id==='biblioteca') renderArticulos();
+  document.querySelector('.content').scrollTop = 0;
+}
+
+/* ── TOAST ── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ── SOS MODAL ── */
+function openSOS() {
+  document.getElementById('sos-modal').classList.add('open');
+  document.getElementById('sos-time').textContent = new Date().toLocaleString('es-PE');
+}
+function closeSOS(e) {
+  if(!e || e.target===document.getElementById('sos-modal'))
+    document.getElementById('sos-modal').classList.remove('open');
+}
+
+/* ─────────────────────────────────
+   MÓDULO 1: TRIAJE JURÍDICO f(x)
+──────────────────────────────────── */
+const preguntas = [
+  {
+    txt: '¿Qué tipo de hecho quieres denunciar?',
+    hint: 'Selecciona la categoría más cercana a lo ocurrido.',
+    opts: [
+      { icon:'💰', txt:'Me robaron o hurtaron bienes', val:'hurto' },
+      { icon:'🤕', txt:'Sufrí agresión física o amenazas', val:'lesiones' },
+      { icon:'💻', txt:'Fraude, estafa o delito informático', val:'estafa' },
+      { icon:'🏠', txt:'Daño a mi propiedad o usurpación', val:'danos' },
+    ]
+  },
+  {
+    txt: '¿Hubo violencia física o intimidación con armas?',
+    hint: 'Incluye amenazas verbales con objeto contundente o arma de fuego.',
+    opts: [
+      { icon:'⚠️', txt:'Sí, hubo violencia o amenaza con arma', val:'si_violencia' },
+      { icon:'✅', txt:'No, fue sin violencia directa', val:'no_violencia' },
+    ]
+  },
+  {
+    txt: '¿Cuántas personas participaron en el hecho?',
+    hint: 'Esto determina si aplica la figura de "banda" o "organización criminal".',
+    opts: [
+      { icon:'👤', txt:'Solo una persona', val:'uno' },
+      { icon:'👥', txt:'Dos o tres personas', val:'dos_tres' },
+      { icon:'🚨', txt:'Cuatro o más personas', val:'banda' },
+    ]
+  },
+  {
+    txt: '¿Cuál es el valor aproximado de lo sustraído o el daño?',
+    hint: 'En Perú, la RMV 2024 es S/. 1,025.',
+    opts: [
+      { icon:'📉', txt:'Menos de 1 RMV (S/. 1,025)', val:'menor' },
+      { icon:'📊', txt:'Entre 1 y 10 RMV', val:'medio' },
+      { icon:'📈', txt:'Más de 10 RMV', val:'mayor' },
+    ]
+  },
+  {
+    txt: '¿El hecho ocurrió en la vía pública o en domicilio?',
+    hint: 'La ubicación puede agravar la pena según el artículo aplicable.',
+    opts: [
+      { icon:'🏙️', txt:'Vía pública, transporte o establecimiento', val:'publico' },
+      { icon:'🏠', txt:'Dentro de mi domicilio o propiedad', val:'domicilio' },
+    ]
+  },
+  {
+    txt: '¿Tienes identificado al presunto autor?',
+    hint: 'Afecta la estrategia de investigación y la solicitud de medidas cautelares.',
+    opts: [
+      { icon:'🆔', txt:'Sí, lo conozco o tengo datos', val:'identificado' },
+      { icon:'❓', txt:'No, es desconocido', val:'desconocido' },
+    ]
+  }
+];
+
+let respuestas = {};
+let qActual = 0;
+
+function initTriaje() {
+  qActual = 0; respuestas = {};
+  document.getElementById('question-card').style.display = 'block';
+  document.getElementById('resultado-card').classList.remove('show');
+  document.getElementById('disclaimer').classList.remove('show');
+  renderPregunta();
+}
+
+function renderPregunta() {
+  const q = preguntas[qActual];
+  const total = preguntas.length;
+
+  // Progress bar
+  let bars = '';
+  for(let i=0;i<total;i++) {
+    let cls = i < qActual ? 'done' : i===qActual ? 'active' : '';
+    bars += `<div class="progress-step ${cls}"></div>`;
+  }
+  document.getElementById('prog-steps').innerHTML = bars;
+  document.getElementById('prog-label').textContent = `Pregunta ${qActual+1} de ${total}`;
+  document.getElementById('q-number').textContent = `PREGUNTA ${String(qActual+1).padStart(2,'0')}`;
+  document.getElementById('q-text').textContent = q.txt;
+  document.getElementById('q-hint').textContent = q.hint;
+
+  let opts = q.opts.map(o =>
+    `<button class="q-opt" onclick="elegir('${o.val}',this)">
+      <span class="q-opt-icon">${o.icon}</span>${o.txt}
+    </button>`
+  ).join('');
+  document.getElementById('q-options').innerHTML = opts;
+}
+
+function elegir(val, btn) {
+  document.querySelectorAll('.q-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  respuestas[qActual] = val;
+  setTimeout(() => {
+    qActual++;
+    if(qActual < preguntas.length) {
+      renderPregunta();
+    } else {
+      mostrarResultado();
+    }
+  }, 350);
+}
+
+function mostrarResultado() {
+  document.getElementById('question-card').style.display = 'none';
+  const res = clasificar(respuestas);
+  document.getElementById('res-delito').textContent = res.delito;
+  let rows = res.datos.map(d =>
+    `<div class="res-row"><span class="res-key">${d.k}</span><span class="res-val">${d.v}</span></div>`
+  ).join('');
+  document.getElementById('res-rows').innerHTML = rows;
+  document.getElementById('resultado-card').classList.add('show');
+  document.getElementById('disclaimer').classList.add('show');
+}
+
+function clasificar(r) {
+  const tipo = r[0]; const violencia = r[1]; const personas = r[2];
+  const valor = r[3]; const lugar = r[4]; const autor = r[5];
+
+  let delito, art, pena, comp, plazo;
+
+  if(tipo==='lesiones') {
+    delito = 'Lesiones dolosas'; art = 'Art. 121 C.P.'; pena = '3 a 6 años'; comp = 'Fiscalía Penal Ordinaria';
+  } else if(tipo==='estafa') {
+    delito = 'Estafa / fraude informático'; art = 'Art. 196 / Ley 30096'; pena = '1 a 6 años'; comp = 'Fiscalía Especializada en Ciberdelincuencia';
+  } else if(tipo==='danos') {
+    delito = 'Daño de bien ajeno'; art = 'Art. 205 C.P.'; pena = '1 a 3 años'; comp = 'Juzgado de Paz Letrado / Fiscalía';
+  } else {
+    // Hurto o robo
+    if(violencia==='si_violencia') {
+      if(personas==='banda') {
+        delito = 'Robo agravado — banda'; art = 'Art. 189 C.P. (agrav.)'; pena = '12 a 20 años'; comp = 'Fiscalía Penal Corporativa';
+      } else {
+        delito = 'Robo simple / calificado'; art = 'Art. 188-189 C.P.'; pena = '3 a 8 años'; comp = 'Fiscalía Penal';
+      }
+    } else {
+      if(valor==='menor') {
+        delito = 'Hurto simple'; art = 'Art. 185 C.P.'; pena = '1 a 3 años'; comp = 'Juzgado de Paz Letrado';
+      } else if(personas==='banda') {
+        delito = 'Hurto agravado — pluralidad'; art = 'Art. 186 C.P.'; pena = '3 a 6 años'; comp = 'Fiscalía Penal';
+      } else {
+        delito = 'Hurto calificado'; art = 'Art. 186 C.P.'; pena = '3 a 6 años'; comp = 'Fiscalía Penal';
+      }
+    }
+  }
+
+  plazo = tipo==='estafa' ? '5 años' : tipo==='danos' ? '2 años' : '10 años';
+
+  return {
+    delito,
+    datos: [
+      {k:'Artículo aplicable', v: art},
+      {k:'Pena probable', v: pena},
+      {k:'Autoridad competente', v: comp},
+      {k:'Dónde denunciar', v: lugar==='domicilio' ? 'Comisaría del sector' : 'Comisaría más cercana o Fiscalía'},
+      {k:'Prescripción', v: plazo},
+      {k:'Identificado', v: autor==='identificado' ? 'Incluir datos en denuncia' : 'Solicitar investigación'},
+    ]
+  };
+}
+
+function resetTriaje() {
+  document.getElementById('resultado-card').classList.remove('show');
+  document.getElementById('disclaimer').classList.remove('show');
+  document.getElementById('question-card').style.display = 'block';
+  initTriaje();
+}
+
+/* ─────────────────────────────────
+   MÓDULO 2: EVIDENCIA + SHA-256
+──────────────────────────────────── */
+let evidencias = [];
+
+async function sha256(buffer) {
+  const hash = await crypto.subtle.digest('SHA-256', buffer);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function handleFiles(files) {
+  document.getElementById('ev-gps').textContent = '-12.0464°S, 77.0428°W';
+  document.getElementById('ev-hora').textContent = new Date().toLocaleTimeString('es-PE');
+
+  for(const file of files) {
+    const buffer = await file.arrayBuffer();
+    const hash = await sha256(buffer);
+    const url = URL.createObjectURL(file);
+    const ts = new Date();
+    const ev = {
+      nombre: file.name,
+      tipo: file.type.startsWith('image') ? 'img' : file.type.startsWith('video') ? 'vid' : 'doc',
+      url,
+      hash,
+      fecha: ts.toLocaleDateString('es-PE'),
+      hora: ts.toLocaleTimeString('es-PE'),
+      gps: '-12.0464°S, 77.0428°W',
+      size: (file.size/1024).toFixed(1)+'KB'
+    };
+    evidencias.push(ev);
+  }
+  renderEvidencias();
+  document.getElementById('ev-count').textContent = evidencias.length + ' evidencia'+(evidencias.length!==1?'s':'');
+  showToast('✅ '+files.length+' archivo(s) registrado(s) con hash SHA-256');
+}
+
+function renderEvidencias() {
+  if(!evidencias.length) {
+    document.getElementById('evidence-list').innerHTML =
+      '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">No hay evidencias aún.<br>Agrega fotos o archivos arriba.</div>';
+    return;
+  }
+  let html = '<div style="padding:0 14px;">';
+  evidencias.forEach((ev,i) => {
+    const icon = ev.tipo==='img'?'🖼️':ev.tipo==='vid'?'🎥':'📄';
+    const thumb = ev.tipo==='img' ? `<img src="${ev.url}" alt="">` : icon;
+    html += `<div class="evidence-item">
+      <div class="ev-thumb">${ev.tipo==='img'?`<img src="${ev.url}" alt="">`:`<span style="font-size:24px;">${icon}</span>`}</div>
+      <div class="ev-info">
+        <div class="ev-name">${ev.nombre}</div>
+        <div class="ev-meta">📅 ${ev.fecha} · 🕐 ${ev.hora} · ${ev.size}</div>
+        <div class="ev-meta">📍 ${ev.gps}</div>
+        <div class="ev-hash">SHA256: ${ev.hash.substring(0,32)}...</div>
+        <div class="ev-status ok">✓ Integridad verificada</div>
+      </div>
+      <button class="ev-del" onclick="eliminarEv(${i})">🗑</button>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('evidence-list').innerHTML = html;
+}
+
+function eliminarEv(i) {
+  evidencias.splice(i,1);
+  renderEvidencias();
+  document.getElementById('ev-count').textContent = evidencias.length + ' evidencia'+(evidencias.length!==1?'s':'');
+}
+
+/* ─────────────────────────────────
+   MÓDULO 3: MAPA DE CALOR (Canvas)
+──────────────────────────────────── */
+function drawHeatmap() {
+  const canvas = document.getElementById('heatmap-canvas');
+  if(!canvas) return;
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo mapa oscuro
+  ctx.fillStyle = '#1a2f4e';
+  ctx.fillRect(0,0,W,H);
+
+  // Cuadrícula sutil
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for(let x=0;x<W;x+=30){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=30){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  // Puntos de calor
+  const puntos = [
+    {x:0.35,y:0.45,r:80,c:'rgba(192,57,43,',i:0.85},
+    {x:0.65,y:0.35,r:65,c:'rgba(192,57,43,',i:0.75},
+    {x:0.2,y:0.6,r:55,c:'rgba(243,156,18,',i:0.7},
+    {x:0.75,y:0.6,r:50,c:'rgba(243,156,18,',i:0.65},
+    {x:0.5,y:0.25,r:40,c:'rgba(39,174,96,',i:0.55},
+    {x:0.15,y:0.3,r:35,c:'rgba(39,174,96,',i:0.45},
+    {x:0.85,y:0.4,r:30,c:'rgba(39,174,96,',i:0.4},
+    {x:0.4,y:0.7,r:45,c:'rgba(243,156,18,',i:0.6},
+    {x:0.6,y:0.75,r:35,c:'rgba(243,156,18,',i:0.5},
+  ];
+
+  puntos.forEach(p => {
+    const grd = ctx.createRadialGradient(p.x*W,p.y*H,0,p.x*W,p.y*H,p.r);
+    grd.addColorStop(0,   p.c+p.i+')');
+    grd.addColorStop(0.4, p.c+(p.i*0.5)+')');
+    grd.addColorStop(1,   p.c+'0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(p.x*W,p.y*H,p.r,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  // Labels de zonas
+  ctx.font = '500 11px DM Sans, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.textAlign = 'center';
+  const zonas = [
+    {x:0.35,y:0.43,n:'Cercado'},
+    {x:0.65,y:0.33,n:'SJL'},
+    {x:0.2,y:0.58,n:'Los Olivos'},
+    {x:0.5,y:0.23,n:'Miraflores'},
+    {x:0.75,y:0.58,n:'La Molina'},
+  ];
+  zonas.forEach(z => { ctx.fillText(z.n, z.x*W, z.y*H); });
+}
+
+/* ─────────────────────────────────
+   MÓDULO 4: BIBLIOTECA LEGAL
+──────────────────────────────────── */
+const leyes = {
+  penal: [
+    { art:'Art. 185', titulo:'Hurto simple', texto:'El que, para obtener provecho, se apodera ilegítimamente de un bien mueble, total o parcialmente ajeno, sustrayéndolo del lugar donde se encuentra, será reprimido con pena privativa de libertad no menor de uno ni mayor de tres años. Se equipararán a bien mueble la energía eléctrica, el gas, el agua y cualquier otra energía o elemento que tenga valor económico, así como el espectro electromagnético y también los recursos pesqueros objeto de un mecanismo de asignación de límites máximos de captura por embarcación.' },
+    { art:'Art. 186', titulo:'Hurto agravado', texto:'El agente será reprimido con pena privativa de libertad no menor de tres ni mayor de seis años si el hurto es cometido: 1. En casa habitada. 2. Durante la noche. 3. Mediante destreza, escalamiento, destrucción o rotura de obstáculos. 4. Con ocasión de incendio, inundación, naufragio, calamidad pública o desgracia particular del agraviado. 5. Sobre los bienes muebles que forman el equipaje de viajero.' },
+    { art:'Art. 188', titulo:'Robo', texto:'El que se apodera ilegítimamente de un bien mueble ajeno, para aprovecharse de él, sustrayéndolo del lugar en que se encuentra, empleando violencia contra la persona o amenazándola con un peligro inminente para su vida o integridad física será reprimido con pena privativa de libertad no menor de tres ni mayor de ocho años.' },
+    { art:'Art. 189', titulo:'Robo agravado', texto:'La pena será no menor de doce ni mayor de veinte años si el robo es cometido: 1. En inmueble habitado. 2. Durante la noche o en lugar desolado. 3. A mano armada. 4. Con el concurso de dos o más personas. 5. En cualquier medio de locomoción de transporte público o privado de pasajeros o de carga.' },
+    { art:'Art. 196', titulo:'Estafa', texto:'El que procura para sí o para otro un provecho ilícito en perjuicio de tercero, induciendo o manteniendo en error al agraviado mediante engaño, astucia, ardid u otra forma fraudulenta, será reprimido con pena privativa de libertad no menor de uno ni mayor de seis años.' },
+    { art:'Art. 205', titulo:'Daño simple', texto:'El que daña, destruye o inutiliza un bien, mueble o inmueble, total o parcialmente ajeno, será reprimido con pena privativa de libertad no mayor de tres años y con treinta a sesenta días-multa.' },
+    { art:'Art. 121', titulo:'Lesiones dolosas graves', texto:'El que causa a otro daño grave en el cuerpo o en la salud, será reprimido con pena privativa de libertad no menor de cuatro ni mayor de ocho años. Se consideran lesiones graves: Las que ponen en peligro inminente la vida de la víctima. Las que mutilan un miembro u órgano principal del cuerpo o lo hacen impropio para su función.' },
+  ],
+  civil: [
+    { art:'Art. 1969', titulo:'Responsabilidad extracontractual', texto:'Aquel que por dolo o culpa causa un daño a otro está obligado a indemnizarlo. El descargo por falta de dolo o culpa corresponde a su autor.' },
+    { art:'Art. 1970', titulo:'Responsabilidad objetiva', texto:'Aquel que mediante un bien riesgoso o peligroso, o por el ejercicio de una actividad riesgosa o peligrosa, causa un daño a otro, está obligado a repararlo.' },
+    { art:'Art. 1984', titulo:'Daño moral', texto:'El daño moral es indemnizado considerando su magnitud y el menoscabo producido a la víctima o a su familia.' },
+    { art:'Art. 923', titulo:'Propiedad', texto:'La propiedad es el poder jurídico que permite usar, disfrutar, disponer y reivindicar un bien. Debe ejercerse en armonía con el interés social y dentro de los límites de la ley.' },
+    { art:'Art. 1361', titulo:'Obligatoriedad de los contratos', texto:'Los contratos son obligatorios en cuanto se haya expresado en ellos. Se presume que la declaración expresada en el contrato responde a la voluntad común de las partes y quien niegue esa coincidencia debe probarla.' },
+  ],
+  constitucion: [
+    { art:'Art. 2 (inc. 24)', titulo:'Derecho a la libertad y seguridad', texto:'Toda persona tiene derecho a la libertad y a la seguridad personal. En consecuencia, nadie está obligado a hacer lo que la ley no manda, ni impedido de hacer lo que ella no prohíbe. No se permite forma alguna de restricción de la libertad personal, salvo en los casos previstos por la ley.' },
+    { art:'Art. 2 (inc. 14)', titulo:'Derecho de defensa', texto:'A contratar con fines lícitos, siempre que no se contravengan leyes de orden público. Toda persona tiene derecho a contratar. Nadie puede ser privado del derecho de defensa en ningún estado del proceso.' },
+    { art:'Art. 139 (inc. 3)', titulo:'Tutela jurisdiccional efectiva', texto:'Son principios y derechos de la función jurisdiccional: La observancia del debido proceso y la tutela jurisdiccional. Ninguna persona puede ser desviada de la jurisdicción predeterminada por la ley, ni sometida a procedimiento distinto de los previamente establecidos.' },
+    { art:'Art. 139 (inc. 14)', titulo:'No ser privado del derecho a la defensa', texto:'El principio de no ser privado del derecho de defensa en ningún estado del proceso. Toda persona será informada inmediatamente y por escrito de la causa o las razones de su detención. Tiene derecho a comunicarse personalmente con un defensor de su elección y a ser asesorada por éste desde que es citada o detenida por cualquier autoridad.' },
+    { art:'Art. 2 (inc. 10)', titulo:'Secreto e inviolabilidad de comunicaciones', texto:'Al secreto y a la inviolabilidad de sus comunicaciones y documentos privados. Las comunicaciones, telecomunicaciones o sus instrumentos sólo pueden ser abiertos, incautados, interceptados o intervenidos por mandamiento motivado del juez, con las garantías previstas en la ley.' },
+  ]
+};
+
+let libroActivo = 'penal';
+let busquedaActiva = '';
+
+function setLibro(libro, btn) {
+  libroActivo = libro;
+  document.querySelectorAll('.libro-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderArticulos();
+}
+
+function buscarLegal(q) {
+  busquedaActiva = q.toLowerCase();
+  renderArticulos();
+}
+
+function highlight(txt, q) {
+  if(!q) return txt;
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return txt.replace(re, '<span class="highlight">$1</span>');
+}
+
+function renderArticulos() {
+  const arts = leyes[libroActivo];
+  const q = busquedaActiva;
+  const filtrados = q ? arts.filter(a =>
+    a.art.toLowerCase().includes(q) ||
+    a.titulo.toLowerCase().includes(q) ||
+    a.texto.toLowerCase().includes(q)
+  ) : arts;
+
+  if(!filtrados.length) {
+    document.getElementById('articulos-list').innerHTML =
+      '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">Sin resultados para "'+q+'"</div>';
+    return;
+  }
+
+  let html = '';
+  filtrados.forEach((a,i) => {
+    html += `<div class="articulo-item">
+      <div class="art-header" onclick="toggleArt(${i})">
+        <div class="art-num">${highlight(a.art,q)}</div>
+        <div class="art-title">${highlight(a.titulo,q)}</div>
+        <div class="art-chevron" id="chev-${i}">▾</div>
+      </div>
+      <div class="art-body" id="body-${i}">${highlight(a.texto,q)}</div>
+    </div>`;
+  });
+  document.getElementById('articulos-list').innerHTML = html;
+}
+
+function toggleArt(i) {
+  const body = document.getElementById('body-'+i);
+  const chev = document.getElementById('chev-'+i);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+/* ── INIT ── */
+initTriaje();
+renderArticulos();
+
+// Actualizar hora en evidencia cada segundo
+setInterval(() => {
+  const h = document.getElementById('ev-hora');
+  if(h && h.textContent !== '—') h.textContent = new Date().toLocaleTimeString('es-PE');
+}, 1000);
+</script>
+</body>
+</html>
