@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LexDefensa v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --navy:#0A2540;--navy2:#1a3a5c;--navy3:#2d5a8a;
+  --gold:#C9A84C;--gold2:#e8c97a;
+  --red:#C0392B;--red2:#e74c3c;
+  --green:#1a7a4a;--green2:#27AE60;
+  --amber:#d4820a;--amber2:#F39C12;
+  --purple:#6C3FC5;--purple2:#9b6fea;
+  --bg:#f0f2f5;--surface:#ffffff;--surface2:#f7f9fc;
+  --border:rgba(10,37,64,0.1);
+  --text1:#0A2540;--text2:#3d5a7a;--text3:#7a97b5;
+  --serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 2px 16px rgba(10,37,64,0.08);--shadow-lg:0 8px 32px rgba(10,37,64,0.14);
+  --nav-h:68px;--header-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;font-family:var(--sans);background:#1a1a2e;color:var(--text1);}
+#app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 0 80px rgba(0,0,0,0.4);}
+
+/* HEADER */
+.header{height:var(--header-h);background:var(--navy);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;position:relative;z-index:10;}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent);}
+.hlogo{width:34px;height:34px;background:var(--gold);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:17px;color:var(--navy);flex-shrink:0;}
+.htitle{font-family:var(--serif);font-size:18px;color:#fff;letter-spacing:0.3px;}
+.hbadge{font-size:9px;background:rgba(201,168,76,0.2);color:var(--gold2);border:1px solid rgba(201,168,76,0.3);border-radius:20px;padding:2px 8px;letter-spacing:0.8px;text-transform:uppercase;}
+.sos-btn{margin-left:auto;width:44px;height:44px;background:var(--red);border-radius:50%;border:2px solid rgba(255,255,255,0.25);color:#fff;font-family:var(--sans);font-weight:600;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;animation:pulse-sos 3s infinite;}
+@keyframes pulse-sos{0%,70%,100%{box-shadow:0 0 0 0 rgba(192,57,43,0.5);}35%{box-shadow:0 0 0 10px rgba(192,57,43,0);}}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.screen{display:none;min-height:calc(100vh - var(--header-h) - var(--nav-h));padding-bottom:16px;}
+.screen.active{display:block;}
+
+/* BOTTOM NAV */
+.bottom-nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;flex-shrink:0;padding:0 2px;padding-bottom:env(safe-area-inset-bottom,0);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.15s;border:none;background:transparent;color:var(--text3);font-family:var(--sans);font-size:9px;}
+.nav-item.active{color:var(--navy);}
+.nav-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background 0.15s;}
+.nav-item.active .nav-icon{background:rgba(10,37,64,0.08);}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:0 12px 10px;}
+.section-title{font-family:var(--serif);font-size:21px;color:var(--navy);padding:18px 14px 6px;}
+.section-sub{font-size:12px;color:var(--text2);padding:0 14px 12px;line-height:1.5;}
+.divider{height:1px;background:var(--border);margin:12px 0;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:var(--radius-sm);font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:transform 0.12s,opacity 0.12s;width:100%;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-gold{background:var(--gold);color:var(--navy);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--navy);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-sm{padding:8px 14px;font-size:12px;width:auto;}
+
+/* INPUTS */
+.inp{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--sans);font-size:14px;color:var(--text1);background:var(--surface2);outline:none;transition:border-color 0.15s;}
+.inp:focus{border-color:var(--navy3);background:#fff;}
+.inp-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;display:block;}
+textarea.inp{resize:vertical;min-height:90px;line-height:1.5;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.badge-blue{background:#e8f0fe;color:#1a3a5c;}
+.badge-gold{background:#fef3cd;color:#8a5f00;}
+.badge-red{background:#fde8e8;color:#8b1a1a;}
+.badge-green{background:#e2f5ec;color:#1a5c3a;}
+.badge-amber{background:#fff3e0;color:#7a4800;}
+.badge-purple{background:#f0ebff;color:#4a2c8a;}
+
+/* ═══════════════════════════
+   PANTALLA HOME
+═══════════════════════════ */
+.home-hero{background:linear-gradient(155deg,var(--navy) 0%,var(--navy2) 55%,#1a4a7a 100%);padding:24px 18px 32px;position:relative;overflow:hidden;}
+.home-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;border:36px solid rgba(201,168,76,0.1);border-radius:50%;}
+.home-hero::after{content:'';position:absolute;bottom:-15px;left:-15px;width:100px;height:100px;border:24px solid rgba(255,255,255,0.04);border-radius:50%;}
+.ods-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);border-radius:20px;padding:4px 12px;margin-bottom:12px;}
+.ods-dot{width:8px;height:8px;background:var(--gold);border-radius:50%;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.ods-text{font-size:10px;color:var(--gold2);letter-spacing:1px;text-transform:uppercase;}
+.home-title{font-family:var(--serif);font-size:26px;color:#fff;line-height:1.2;margin-bottom:6px;}
+.home-desc{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;}
+.home-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:-18px 12px 0;position:relative;z-index:2;}
+.stat-card{background:var(--surface);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);padding:12px 8px;text-align:center;}
+.stat-num{font-family:var(--serif);font-size:20px;color:var(--navy);}
+.stat-label{font-size:9px;color:var(--text3);margin-top:2px;line-height:1.3;}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 12px;margin-top:12px;}
+.quick-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;cursor:pointer;transition:transform 0.15s;border:none;text-align:left;font-family:var(--sans);}
+.quick-card:active{transform:scale(0.96);}
+.quick-icon{font-size:24px;margin-bottom:8px;width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;}
+.quick-name{font-size:12px;font-weight:600;color:var(--text1);}
+.quick-desc{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4;}
+.section-label{padding:14px 14px 6px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+.alert-bar{margin:0 12px 10px;background:linear-gradient(135deg,#fff8e8,#fff3cd);border:1px solid rgba(212,130,10,0.3);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:flex-start;gap:8px;}
+.alert-text{font-size:11px;color:#7a4800;line-height:1.5;}
+
+/* ═══════════════════════════
+   TRIAJE
+═══════════════════════════ */
+.triaje-progress{padding:12px 14px 0;}
+.progress-steps{display:flex;gap:3px;margin-bottom:5px;}
+.progress-step{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.3s;}
+.progress-step.done{background:var(--navy);}
+.progress-step.active{background:var(--gold);}
+.progress-label{font-size:11px;color:var(--text3);}
+.question-card{margin:10px 12px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 16px;}
+.q-number{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:1px;margin-bottom:8px;}
+.q-text{font-family:var(--serif);font-size:19px;color:var(--navy);line-height:1.3;margin-bottom:6px;}
+.q-hint{font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:16px;}
+.q-options{display:flex;flex-direction:column;gap:7px;}
+.q-opt{padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text1);cursor:pointer;transition:all 0.15s;background:var(--surface2);text-align:left;font-family:var(--sans);display:flex;align-items:center;gap:9px;}
+.q-opt:hover{border-color:var(--navy3);background:#fff;}
+.q-opt.selected{border-color:var(--navy);background:rgba(10,37,64,0.05);color:var(--navy);font-weight:500;}
+.resultado-card{margin:10px 12px;background:var(--navy);border-radius:var(--radius);padding:20px 16px;display:none;}
+.resultado-card.show{display:block;}
+.res-title{font-family:var(--serif);font-size:11px;color:var(--gold2);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.res-delito{font-family:var(--serif);font-size:22px;color:#fff;margin-bottom:12px;}
+.res-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.1);gap:10px;}
+.res-row:last-child{border-bottom:none;}
+.res-key{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;}
+.res-val{font-size:12px;color:#fff;font-weight:500;text-align:right;}
+.disclaimer{margin:0 12px 10px;padding:9px 12px;background:#fff8e8;border-left:3px solid var(--gold);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:11px;color:#7a4800;line-height:1.5;display:none;}
+.disclaimer.show{display:block;}
+.categoria-selector{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto;}
+.cat-tab{padding:7px 13px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);transition:all 0.15s;font-family:var(--sans);}
+.cat-tab.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* ═══════════════════════════
+   EVIDENCIA
+═══════════════════════════ */
+.camera-area{margin:0 12px 10px;background:var(--navy);border-radius:var(--radius);height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:opacity 0.15s;}
+.camera-area:active{opacity:0.85;}
+.camera-corner{position:absolute;width:22px;height:22px;border-color:var(--gold);border-style:solid;border-width:0;}
+.camera-corner.tl{top:14px;left:14px;border-top-width:2px;border-left-width:2px;border-radius:3px 0 0 0;}
+.camera-corner.tr{top:14px;right:14px;border-top-width:2px;border-right-width:2px;border-radius:0 3px 0 0;}
+.camera-corner.bl{bottom:14px;left:14px;border-bottom-width:2px;border-left-width:2px;border-radius:0 0 0 3px;}
+.camera-corner.br{bottom:14px;right:14px;border-bottom-width:2px;border-right-width:2px;border-radius:0 0 3px 0;}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 12px 10px;}
+.meta-item{background:var(--surface);border-radius:var(--radius-sm);padding:11px;box-shadow:var(--shadow);}
+.meta-key{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.meta-val{font-size:12px;font-weight:500;color:var(--text1);}
+.evidence-item{background:var(--surface);border-radius:var(--radius-sm);padding:11px 13px;display:flex;gap:10px;align-items:flex-start;margin-bottom:7px;box-shadow:var(--shadow);}
+.ev-thumb{width:48px;height:48px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.ev-thumb img{width:100%;height:100%;object-fit:cover;}
+.ev-info{flex:1;min-width:0;}
+.ev-name{font-size:12px;font-weight:500;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ev-meta{font-size:10px;color:var(--text3);margin-top:2px;}
+.ev-hash{font-family:var(--mono);font-size:9px;color:var(--text3);background:var(--bg);padding:2px 6px;border-radius:4px;margin-top:4px;display:inline-block;}
+.ev-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0;}
+
+/* ═══════════════════════════
+   TRACKING
+═══════════════════════════ */
+.tracking-header{background:var(--navy);padding:18px 16px 26px;}
+.tl-item{display:flex;gap:12px;padding-bottom:20px;}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0;}
+.tl-dot{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.tl-dot.done{background:var(--green2);color:#fff;}
+.tl-dot.active{background:var(--gold);color:var(--navy);}
+.tl-dot.pending{background:var(--bg);border:2px solid var(--border);}
+.tl-line{flex:1;width:2px;background:var(--border);margin-top:3px;border-radius:1px;}
+.tl-line.done{background:var(--green2);opacity:0.3;}
+.tl-title{font-size:13px;font-weight:600;color:var(--text1);margin-bottom:2px;}
+.tl-title.pending{color:var(--text3);font-weight:400;}
+.tl-date{font-size:10px;color:var(--text3);margin-bottom:3px;}
+.tl-detail{font-size:11px;color:var(--text2);line-height:1.5;background:var(--bg);padding:7px 9px;border-radius:var(--radius-sm);}
+
+/* ═══════════════════════════
+   MAPA DUAL
+═══════════════════════════ */
+.mapa-tabs{display:flex;gap:0;margin:12px 12px 0;background:var(--bg);border-radius:var(--radius-sm);padding:3px;}
+.mapa-tab{flex:1;padding:9px 6px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;text-align:center;border:none;background:transparent;color:var(--text2);font-family:var(--sans);transition:all 0.2s;}
+.mapa-tab.active{background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(10,37,64,0.2);}
+.mapa-container{margin:8px 12px 10px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-lg);height:260px;position:relative;}
+#heatmap-canvas{width:100%;height:100%;display:block;}
+#leaflet-map{width:100%;height:100%;display:none;}
+.mapa-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(10,37,64,0.85));padding:12px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;}
+.legend-bar{width:70px;height:7px;border-radius:4px;background:linear-gradient(to right,rgba(39,174,96,0.8),rgba(243,156,18,0.8),rgba(192,57,43,0.9));}
+.zona-item{background:var(--surface);border-radius:var(--radius-sm);padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:7px;box-shadow:var(--shadow);cursor:pointer;transition:transform 0.12s;}
+.zona-item:active{transform:scale(0.97);}
+.zona-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+.centro-item{background:var(--surface);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:transform 0.12s;}
+.centro-item:active{transform:scale(0.97);}
+.centro-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.centro-name{font-size:13px;font-weight:600;color:var(--text1);}
+.centro-dir{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.4;}
+.centro-dist{font-size:11px;font-weight:500;color:var(--navy2);margin-top:3px;}
+.centro-btns{display:flex;gap:6px;margin-top:6px;}
+.centro-btn{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:none;font-family:var(--sans);}
+.centro-btn-map{background:var(--navy);color:#fff;}
+.centro-btn-tel{background:var(--green2);color:#fff;}
+
+/* ═══════════════════════════
+   BIBLIOTECA
+═══════════════════════════ */
+.search-bar{padding:10px 12px;position:sticky;top:0;background:var(--bg);z-index:5;}
+.search-wrap{position:relative;}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3);pointer-events:none;}
+.search-inp{width:100%;padding:11px 13px 11px 35px;border:1.5px solid var(--border);border-radius:50px;font-family:var(--sans);font-size:13px;background:var(--surface);outline:none;color:var(--text1);transition:border-color 0.15s;}
+.search-inp:focus{border-color:var(--navy3);}
+.libro-tabs{display:flex;gap:5px;padding:0 12px 8px;overflow-x:auto;}
+.libro-tab{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);transition:all 0.15s;font-family:var(--sans);}
+.libro-tab.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.articulo-item{margin:0 12px 7px;background:var(--surface);border-radius:var(--radius-sm);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;}
+.art-header{padding:11px 13px;display:flex;align-items:center;gap:9px;}
+.art-num{font-family:var(--mono);font-size:10px;color:var(--gold);background:var(--navy);padding:2px 7px;border-radius:4px;flex-shrink:0;}
+.art-title{font-size:12px;font-weight:500;color:var(--text1);flex:1;}
+.art-chevron{color:var(--text3);font-size:14px;transition:transform 0.2s;}
+.art-body{display:none;padding:0 13px 13px;font-size:12px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border);padding-top:10px;}
+.art-body.open{display:block;}
+.art-chevron.open{transform:rotate(180deg);}
+.highlight{background:rgba(201,168,76,0.3);border-radius:2px;padding:0 2px;}
+
+/* ═══════════════════════════
+   ANTICORRUPCIÓN (nuevo tab)
+═══════════════════════════ */
+.anti-hero{background:linear-gradient(155deg,#2d1a5c,#4a2c8a);padding:20px 16px 28px;position:relative;overflow:hidden;margin-bottom:-14px;}
+.anti-hero::before{content:'';position:absolute;top:-20px;right:-20px;width:120px;height:120px;border:28px solid rgba(156,111,234,0.15);border-radius:50%;}
+.anti-title{font-family:var(--serif);font-size:22px;color:#fff;margin-bottom:5px;}
+.anti-desc{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;}
+.anti-menu{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:20px 12px 0;}
+.anti-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;cursor:pointer;transition:transform 0.15s;border:none;text-align:left;font-family:var(--sans);}
+.anti-card:active{transform:scale(0.96);}
+.anti-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:8px;}
+.anti-name{font-size:12px;font-weight:600;color:var(--text1);}
+.anti-desc2{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4;}
+
+/* Sub-pantallas anticorrupción */
+.sub-screen{display:none;padding-bottom:16px;}
+.sub-screen.active{display:block;}
+.sub-header{background:var(--navy);padding:16px;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sub-back{background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sub-title{font-family:var(--serif);font-size:17px;color:#fff;}
+
+/* Form */
+.form-group{margin-bottom:14px;}
+.anon-badge{display:flex;align-items:center;gap:8px;background:#f0ebff;border:1px solid rgba(108,63,197,0.2);border-radius:var(--radius-sm);padding:10px 12px;margin:0 12px 12px;}
+.anon-icon{font-size:20px;}
+.anon-text{font-size:12px;color:#4a2c8a;line-height:1.4;}
+
+/* Verificador */
+.verify-result{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);margin:10px 12px;padding:16px;}
+.verify-avatar{width:56px;height:56px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;}
+.verify-name{font-family:var(--serif);font-size:18px;color:var(--navy);text-align:center;}
+.verify-cargo{font-size:12px;color:var(--text2);text-align:center;margin-top:2px;}
+.verify-status{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0;padding:8px;border-radius:var(--radius-sm);}
+.verify-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.verify-row:last-child{border-bottom:none;}
+.verify-key{color:var(--text3);}
+.verify-val{color:var(--text1);font-weight:500;}
+
+/* Canal institucional */
+.canal-item{background:var(--surface);border-radius:var(--radius-sm);box-shadow:var(--shadow);margin:0 12px 8px;padding:13px;}
+.canal-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.canal-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.canal-name{font-size:13px;font-weight:600;color:var(--text1);}
+.canal-tipo{font-size:10px;color:var(--text3);}
+.canal-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;}
+
+/* ═══════════════════════════
+   SOS MODAL
+═══════════════════════════ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,37,64,0.65);z-index:100;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{background:var(--surface);border-radius:22px 22px 0 0;width:100%;max-width:430px;padding:18px;animation:slideUp 0.3s ease;max-height:80vh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.contact-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
+.contact-item:last-of-type{border-bottom:none;}
+.contact-avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.contact-call{margin-left:auto;background:var(--green2);color:#fff;border:none;border-radius:50%;width:34px;height:34px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.chat-bubble{background:var(--bg);border-radius:12px 12px 12px 4px;padding:9px 13px;font-size:12px;color:var(--text1);line-height:1.5;margin-bottom:7px;}
+.chat-bubble.bot{background:var(--navy);color:rgba(255,255,255,0.9);border-radius:12px 12px 4px 12px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav-h) + 10px);left:50%;transform:translateX(-50%) translateY(70px);background:var(--navy);color:#fff;padding:9px 18px;border-radius:50px;font-size:12px;z-index:200;transition:transform 0.3s,opacity 0.3s;opacity:0;white-space:nowrap;box-shadow:var(--shadow-lg);}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* Leaflet custom */
+.leaflet-popup-content-wrapper{border-radius:var(--radius-sm)!important;box-shadow:var(--shadow-lg)!important;}
+.leaflet-popup-content{margin:12px 14px!important;font-family:var(--sans)!important;font-size:13px!important;}
+.popup-title{font-weight:600;color:var(--navy);margin-bottom:4px;}
+.popup-dir{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.popup-tel{font-size:11px;color:var(--text3);margin-bottom:8px;}
+.popup-btn{display:inline-block;background:var(--navy);color:#fff;padding:5px 12px;border-radius:5px;font-size:11px;text-decoration:none;font-weight:500;}
+
+.content::-webkit-scrollbar{width:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ HEADER ══ -->
+<header class="header">
+  <div class="hlogo">⚖</div>
+  <div>
+    <div class="htitle">LexDefensa</div>
+    <div class="hbadge">ODS · Corrupción Cero</div>
+  </div>
+  <button class="sos-btn" onclick="openSOS()">SOS</button>
+</header>
+
+<!-- ══ CONTENT ══ -->
+<div class="content">
+
+<!-- ── HOME ── -->
+<div id="screen-home" class="screen active">
+  <div class="home-hero">
+    <div class="ods-badge"><span class="ods-dot"></span><span class="ods-text">ODS 16 · Corrupción Cero</span></div>
+    <div class="home-title">Tu derecho,<br><em>tu defensa</em></div>
+    <div class="home-desc">Plataforma ciudadana de integridad pública y acceso a la justicia.</div>
+  </div>
+  <div class="home-stats">
+    <div class="stat-card"><div class="stat-num">1,247</div><div class="stat-label">Denuncias radicadas</div></div>
+    <div class="stat-card"><div class="stat-num">98%</div><div class="stat-label">Precisión triaje</div></div>
+    <div class="stat-card"><div class="stat-num">24h</div><div class="stat-label">Asistencia</div></div>
+  </div>
+  <div style="height:16px"></div>
+  <div class="alert-bar">
+    <span>⚠️</span>
+    <div class="alert-text"><strong>Aviso legal:</strong> LexDefensa orienta y clasifica. No reemplaza asesoramiento profesional. Consulte siempre a un abogado titulado.</div>
+  </div>
+  <div class="section-label">Herramientas ciudadanas</div>
+  <div class="quick-actions">
+    <button class="quick-card" onclick="goTo('triaje')">
+      <div class="quick-icon" style="background:#e8f0fe;">⚖️</div>
+      <div class="quick-name">Triaje jurídico</div>
+      <div class="quick-desc">Clasifica delitos y corrupción</div>
+    </button>
+    <button class="quick-card" onclick="goTo('anti')">
+      <div class="quick-icon" style="background:#f0ebff;">🏛️</div>
+      <div class="quick-name">Anticorrupción</div>
+      <div class="quick-desc">Denuncia anónima · Verificar</div>
+    </button>
+    <button class="quick-card" onclick="goTo('evidencia')">
+      <div class="quick-icon" style="background:#e2f5ec;">📷</div>
+      <div class="quick-name">Evidencia</div>
+      <div class="quick-desc">SHA-256 · GPS · hash</div>
+    </button>
+    <button class="quick-card" onclick="goTo('tracking')">
+      <div class="quick-icon" style="background:#fff3e0;">📋</div>
+      <div class="quick-name">Mis denuncias</div>
+      <div class="quick-desc">Seguimiento en tiempo real</div>
+    </button>
+    <button class="quick-card" onclick="goTo('mapa')">
+      <div class="quick-icon" style="background:#fde8e8;">🗺️</div>
+      <div class="quick-name">Mapa</div>
+      <div class="quick-desc">Calor + Centros de denuncia</div>
+    </button>
+    <button class="quick-card" onclick="goTo('biblioteca')">
+      <div class="quick-icon" style="background:#fff8e8;">📚</div>
+      <div class="quick-name">Biblioteca legal</div>
+      <div class="quick-desc">Códigos · CICC · UNCAC</div>
+    </button>
+  </div>
+</div>
+
+<!-- ── TRIAJE ── -->
+<div id="screen-triaje" class="screen">
+  <div class="section-title">Triaje jurídico</div>
+  <div class="section-sub">Clasifica el hecho: delitos comunes o actos de corrupción.</div>
+  <div class="categoria-selector">
+    <button class="cat-tab active" onclick="setCategoria('comun',this)">⚖️ Delitos comunes</button>
+    <button class="cat-tab" onclick="setCategoria('corrupcion',this)">🏛️ Corrupción</button>
+    <button class="cat-tab" onclick="setCategoria('laboral',this)">👔 Laboral / Adm.</button>
+  </div>
+  <div class="triaje-progress">
+    <div class="progress-steps" id="prog-steps"></div>
+    <div class="progress-label" id="prog-label">Pregunta 1 de 6</div>
+  </div>
+  <div class="question-card" id="question-card">
+    <div class="q-number" id="q-number">PREGUNTA 01</div>
+    <div class="q-text" id="q-text">Cargando...</div>
+    <div class="q-hint" id="q-hint"></div>
+    <div class="q-options" id="q-options"></div>
+  </div>
+  <div class="resultado-card" id="resultado-card">
+    <div class="res-title">Clasificación legal</div>
+    <div class="res-delito" id="res-delito"></div>
+    <div id="res-rows"></div>
+    <div style="height:12px"></div>
+    <button class="btn btn-gold" onclick="goTo('evidencia')">📷 Registrar evidencia</button>
+    <div style="height:7px"></div>
+    <button class="btn btn-outline" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.3);" onclick="resetTriaje()">↺ Nueva clasificación</button>
+  </div>
+  <div class="disclaimer" id="disclaimer">⚠️ Esta clasificación es orientativa y no constituye asesoramiento jurídico. Los artículos citados corresponden al Código Penal peruano vigente. Consulte a un abogado titulado antes de actuar.</div>
+</div>
+
+<!-- ── EVIDENCIA ── -->
+<div id="screen-evidencia" class="screen">
+  <div class="section-title">Módulo de evidencia</div>
+  <div class="section-sub">Cada archivo se registra con GPS, timestamp exacto y hash SHA-256 para garantizar integridad probatoria.</div>
+  <div class="meta-grid">
+    <div class="meta-item"><div class="meta-key">📍 Ubicación</div><div class="meta-val" id="ev-gps">—</div></div>
+    <div class="meta-item"><div class="meta-key">🕐 Hora exacta</div><div class="meta-val" id="ev-hora">—</div></div>
+    <div class="meta-item"><div class="meta-key">📁 Archivos</div><div class="meta-val" id="ev-count">0 evidencias</div></div>
+    <div class="meta-item"><div class="meta-key">🔒 Integridad</div><div class="meta-val" style="color:var(--green2)">SHA-256 ✓</div></div>
+  </div>
+  <div class="camera-area" onclick="document.getElementById('file-input').click()">
+    <div class="camera-corner tl"></div><div class="camera-corner tr"></div>
+    <div class="camera-corner bl"></div><div class="camera-corner br"></div>
+    <div style="font-size:32px;color:rgba(255,255,255,0.4);margin-bottom:7px;">📷</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.6);">Toca para <span style="color:var(--gold2);font-weight:500;">agregar evidencia</span></div>
+  </div>
+  <input type="file" id="file-input" accept="image/*,video/*,.pdf" style="display:none" multiple onchange="handleFiles(this.files)">
+  <div style="padding:0 12px 5px;font-size:11px;font-weight:500;color:var(--text2);">Evidencias registradas</div>
+  <div id="evidence-list" style="padding:0 12px;">
+    <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;">No hay evidencias aún.</div>
+  </div>
+  <div style="padding:0 12px;margin-top:6px;">
+    <button class="btn btn-primary" onclick="showToast('📎 Evidencias adjuntadas a la denuncia activa')">📎 Adjuntar a denuncia activa</button>
+  </div>
+</div>
+
+<!-- ── TRACKING ── -->
+<div id="screen-tracking" class="screen">
+  <div class="tracking-header">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--gold2);margin-bottom:3px;">RADICADO #2024-LIM-4471</div>
+    <div style="font-family:var(--serif);font-size:20px;color:#fff;margin-bottom:4px;">Hurto calificado</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);">Art. 186 C.P. · Fiscalía Lima Norte · Dr. Gómez</div>
+    <div style="height:8px"></div>
+    <span class="badge badge-amber">En investigación</span>
+  </div>
+  <div style="padding:18px 12px 0;">
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot done">✓</div><div class="tl-line done"></div></div>
+      <div>
+        <div class="tl-title">Denuncia radicada</div>
+        <div class="tl-date">12 mayo 2024 · 09:14 a.m.</div>
+        <div class="tl-detail">Radicado #2024-LIM-4471. Se adjuntaron 3 evidencias con hash SHA-256 verificado.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot done">✓</div><div class="tl-line done"></div></div>
+      <div>
+        <div class="tl-title">Caso asignado</div>
+        <div class="tl-date">13 mayo 2024 · 11:30 a.m.</div>
+        <div class="tl-detail">Asignado al Dr. Marco Gómez, Fiscal Provincial. Mesa de partes atendió en tiempo legal.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot active">●</div><div class="tl-line"></div></div>
+      <div>
+        <div class="tl-title">En investigación</div>
+        <div class="tl-date">15 mayo 2024 · En curso</div>
+        <div class="tl-detail">Diligencias preliminares. Se solicitaron imágenes de cámara al municipio. Plazo: 60 días.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot pending"></div><div class="tl-line"></div></div>
+      <div><div class="tl-title pending">Acusación / archivo</div><div class="tl-date">Pendiente</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot pending"></div></div>
+      <div><div class="tl-title pending">Resolución final</div><div class="tl-date">Pendiente</div></div>
+    </div>
+  </div>
+  <div style="padding:0 12px;"><button class="btn btn-outline" onclick="showToast('📋 Iniciando nueva denuncia...')">+ Registrar nueva denuncia</button></div>
+</div>
+
+<!-- ── MAPA DUAL ── -->
+<div id="screen-mapa" class="screen">
+  <div class="section-title">Mapa ciudadano</div>
+  <div class="mapa-tabs">
+    <button class="mapa-tab active" id="tab-calor" onclick="setMapaCapa('calor')">🔥 Mapa de calor</button>
+    <button class="mapa-tab" id="tab-centros" onclick="setMapaCapa('centros')">📍 Denuncia aquí</button>
+  </div>
+
+  <!-- Capa 1: Calor -->
+  <div id="capa-calor">
+    <div class="mapa-container">
+      <canvas id="heatmap-canvas"></canvas>
+      <div class="mapa-overlay">
+        <div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-bottom:3px;">Intensidad de reportes</div>
+          <div class="legend-bar"></div>
+          <div style="display:flex;justify-content:space-between;width:70px;">
+            <span style="font-size:9px;color:rgba(255,255,255,0.7);">Bajo</span>
+            <span style="font-size:9px;color:rgba(255,255,255,0.7);">Alto</span>
+          </div>
+        </div>
+        <div style="text-align:right;"><div style="font-family:var(--mono);font-size:18px;color:#fff;">247</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">reportes este mes</div></div>
+      </div>
+    </div>
+    <div style="padding:0 12px 5px;font-size:11px;font-weight:500;color:var(--text2);">Zonas de mayor incidencia</div>
+    <div style="padding:0 12px;">
+      <div class="zona-item"><div class="zona-dot" style="background:var(--red);"></div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">Cercado de Lima</div><div style="font-size:10px;color:var(--text3);">Hurto · robo · estafa</div></div><div style="font-family:var(--mono);font-size:13px;color:var(--red)">87</div></div>
+      <div class="zona-item"><div class="zona-dot" style="background:var(--amber2);"></div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">San Juan de Lurigancho</div><div style="font-size:10px;color:var(--text3);">Hurto · lesiones</div></div><div style="font-family:var(--mono);font-size:13px;color:var(--amber2)">64</div></div>
+      <div class="zona-item"><div class="zona-dot" style="background:var(--amber2);"></div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">Los Olivos</div><div style="font-size:10px;color:var(--text3);">Robo agravado</div></div><div style="font-family:var(--mono);font-size:13px;color:var(--amber2)">48</div></div>
+      <div class="zona-item"><div class="zona-dot" style="background:var(--green2);"></div><div style="flex:1;"><div style="font-size:12px;font-weight:500;">San Isidro</div><div style="font-size:10px;color:var(--text3);">Estafa · daño patrimonial</div></div><div style="font-family:var(--mono);font-size:13px;color:var(--green2)">14</div></div>
+    </div>
+  </div>
+
+  <!-- Capa 2: Centros de denuncia -->
+  <div id="capa-centros" style="display:none;">
+    <div class="mapa-container">
+      <div id="leaflet-map" style="width:100%;height:100%;display:block;"></div>
+    </div>
+    <div style="padding:4px 12px 5px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:11px;font-weight:500;color:var(--text2);">Centros cercanos</div>
+      <div style="font-size:10px;color:var(--text3);">📍 Lima, Perú</div>
+    </div>
+    <div style="padding:0 12px;" id="centros-list"></div>
+  </div>
+</div>
+
+<!-- ── BIBLIOTECA ── -->
+<div id="screen-biblioteca" class="screen">
+  <div class="search-bar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-inp" type="text" placeholder="Buscar artículo, delito, coima..." id="search-legal" oninput="buscarLegal(this.value)">
+    </div>
+  </div>
+  <div class="libro-tabs">
+    <button class="libro-tab active" onclick="setLibro('penal',this)">⚖️ C. Penal</button>
+    <button class="libro-tab" onclick="setLibro('civil',this)">📜 C. Civil</button>
+    <button class="libro-tab" onclick="setLibro('constitucion',this)">🏛️ Constitución</button>
+    <button class="libro-tab" onclick="setLibro('anticorrupcion',this)">🔍 Anticorrupción</button>
+  </div>
+  <div id="articulos-list"></div>
+  <div style="padding:12px;text-align:center;">
+    <span class="badge badge-green">✓ Disponible sin internet</span>
+    <div style="font-size:10px;color:var(--text3);margin-top:5px;">CICC · UNCAC · Ley 30057 · Actualizado 2024</div>
+  </div>
+</div>
+
+<!-- ── ANTICORRUPCIÓN ── -->
+<div id="screen-anti" class="screen">
+  <!-- Menú principal -->
+  <div id="anti-menu-view" class="sub-screen active">
+    <div class="anti-hero">
+      <div style="font-size:10px;color:rgba(156,111,234,0.9);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">ODS 16 · Integridad pública</div>
+      <div class="anti-title">Centro anticorrupción</div>
+      <div class="anti-desc">Denuncia actos de corrupción, verifica funcionarios y accede a información pública.</div>
+    </div>
+    <div class="anti-menu">
+      <button class="anti-card" onclick="showAntiSub('denuncia-anon')">
+        <div class="anti-icon" style="background:#f0ebff;">🕵️</div>
+        <div class="anti-name">Denuncia anónima</div>
+        <div class="anti-desc2">Cifrada · sin IP · sin datos</div>
+      </button>
+      <button class="anti-card" onclick="showAntiSub('verificador')">
+        <div class="anti-icon" style="background:#e2f5ec;">🔍</div>
+        <div class="anti-name">Verificar funcionario</div>
+        <div class="anti-desc2">RNSSC · inhabilitados</div>
+      </button>
+      <button class="anti-card" onclick="showAntiSub('canales')">
+        <div class="anti-icon" style="background:#e8f0fe;">🏛️</div>
+        <div class="anti-name">Canales institucionales</div>
+        <div class="anti-desc2">CGR · MP · Contraloría</div>
+      </button>
+      <button class="anti-card" onclick="showAntiSub('acceso-info')">
+        <div class="anti-icon" style="background:#fff8e8;">📄</div>
+        <div class="anti-name">Acceso a info pública</div>
+        <div class="anti-desc2">Ley 27806 · formulario</div>
+      </button>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:8px;">📊 Estadísticas ODS 16</div>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-family:var(--serif);font-size:18px;color:var(--purple);">342</div>
+          <div style="font-size:10px;color:var(--text3);">Denuncias corrupción</div>
+        </div>
+        <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-family:var(--serif);font-size:18px;color:var(--green2);">89%</div>
+          <div style="font-size:10px;color:var(--text3);">Anónimas cifradas</div>
+        </div>
+        <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+          <div style="font-family:var(--serif);font-size:18px;color:var(--amber2);">47</div>
+          <div style="font-size:10px;color:var(--text3);">Func. verificados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub: Denuncia anónima -->
+  <div id="anti-denuncia-anon" class="sub-screen">
+    <div class="sub-header">
+      <button class="sub-back" onclick="showAntiSub('menu')">←</button>
+      <div class="sub-title">Denuncia anónima</div>
+    </div>
+    <div class="anon-badge">
+      <span class="anon-icon">🔒</span>
+      <div class="anon-text"><strong>Protección total:</strong> Esta denuncia no registra tu IP, nombre ni datos de sesión. Solo el contenido es enviado cifrado.</div>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label class="inp-label">Tipo de acto de corrupción</label>
+        <select class="inp" id="tipo-corrupcion">
+          <option value="">— Selecciona —</option>
+          <option>Cohecho (coima / soborno)</option>
+          <option>Peculado (robo de fondos públicos)</option>
+          <option>Abuso de autoridad</option>
+          <option>Tráfico de influencias</option>
+          <option>Nepotismo / favoritismo</option>
+          <option>Irregularidad en licitación</option>
+          <option>Malversación de fondos</option>
+          <option>Enriquecimiento ilícito</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="inp-label">Institución o dependencia involucrada</label>
+        <input type="text" class="inp" placeholder="Ej: Municipalidad de Miraflores, MINSA...">
+      </div>
+      <div class="form-group">
+        <label class="inp-label">Descripción del hecho</label>
+        <textarea class="inp" placeholder="Describe con el mayor detalle posible: qué ocurrió, cuándo, quiénes estaban involucrados, testigos..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="inp-label">Fecha aproximada del hecho</label>
+        <input type="date" class="inp">
+      </div>
+      <div class="form-group">
+        <label class="inp-label">Monto aproximado involucrado (opcional)</label>
+        <input type="text" class="inp" placeholder="S/. 0.00">
+      </div>
+      <div style="background:#f0ebff;border-radius:var(--radius-sm);padding:10px;font-size:11px;color:#4a2c8a;margin-bottom:14px;line-height:1.5;">
+        📋 Tu denuncia será derivada automáticamente a: <strong>Contraloría General de la República</strong> y <strong>Fiscalía Especializada en Delitos de Corrupción de Funcionarios (FECOR)</strong>.
+      </div>
+      <button class="btn btn-purple" onclick="enviarDenunciaAnon()">🕵️ Enviar denuncia cifrada</button>
+    </div>
+  </div>
+
+  <!-- Sub: Verificador -->
+  <div id="anti-verificador" class="sub-screen">
+    <div class="sub-header">
+      <button class="sub-back" onclick="showAntiSub('menu')">←</button>
+      <div class="sub-title">Verificar funcionario</div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px;">Consulta el Registro Nacional de Sanciones de Servidores Civiles (RNSSC) para verificar si un funcionario está inhabilitado o tiene sanciones vigentes.</div>
+      <div class="form-group">
+        <label class="inp-label">Nombre completo o DNI</label>
+        <input type="text" class="inp" id="verify-input" placeholder="Ej: Juan Pérez García o 12345678">
+      </div>
+      <button class="btn btn-primary" onclick="buscarFuncionario()">🔍 Consultar RNSSC</button>
+    </div>
+    <div class="verify-result" id="verify-result" style="display:none;">
+      <div class="verify-avatar">👤</div>
+      <div class="verify-name" id="vfy-name">Carlos Mendoza Ríos</div>
+      <div class="verify-cargo" id="vfy-cargo">Gerente de Logística · Municipalidad Lima</div>
+      <div class="verify-status" id="vfy-status" style="background:#e2f5ec;">
+        <span style="font-size:18px;">✅</span>
+        <span style="font-size:13px;font-weight:500;color:var(--green);">Sin sanciones vigentes</span>
+      </div>
+      <div class="verify-row"><span class="verify-key">DNI</span><span class="verify-val" id="vfy-dni">—</span></div>
+      <div class="verify-row"><span class="verify-key">Institución</span><span class="verify-val" id="vfy-inst">—</span></div>
+      <div class="verify-row"><span class="verify-key">Cargo actual</span><span class="verify-val" id="vfy-cargo2">—</span></div>
+      <div class="verify-row"><span class="verify-key">Sanciones previas</span><span class="verify-val" id="vfy-sanc">—</span></div>
+      <div class="verify-row"><span class="verify-key">Estado</span><span class="verify-val" id="vfy-estado">—</span></div>
+      <div style="margin-top:12px;font-size:10px;color:var(--text3);text-align:center;">Fuente: RNSSC · SERVIR · Contraloría General del Perú</div>
+    </div>
+  </div>
+
+  <!-- Sub: Canales institucionales -->
+  <div id="anti-canales" class="sub-screen">
+    <div class="sub-header">
+      <button class="sub-back" onclick="showAntiSub('menu')">←</button>
+      <div class="sub-title">Canales institucionales</div>
+    </div>
+    <div id="canales-list"></div>
+  </div>
+
+  <!-- Sub: Acceso a info pública -->
+  <div id="anti-acceso-info" class="sub-screen">
+    <div class="sub-header">
+      <button class="sub-back" onclick="showAntiSub('menu')">←</button>
+      <div class="sub-title">Acceso a información pública</div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;">
+        La <strong>Ley 27806</strong> garantiza tu derecho a solicitar cualquier información a entidades del Estado. Tienen <strong>7 días hábiles</strong> para responder (o 15 si es compleja). Si no responden, puedes apelar y denunciar ante la Defensoría del Pueblo.
+      </div>
+      <div class="form-group">
+        <label class="inp-label">Entidad pública a consultar</label>
+        <select class="inp" id="entidad-info">
+          <option>Municipalidad de Lima</option>
+          <option>Ministerio de Salud (MINSA)</option>
+          <option>Ministerio de Educación</option>
+          <option>SUNAT</option>
+          <option>Contraloría General</option>
+          <option>Poder Judicial</option>
+          <option>Ministerio Público</option>
+          <option>Otra entidad pública</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="inp-label">Información que solicitas</label>
+        <textarea class="inp" placeholder="Ej: Contratos de obras públicas 2023, presupuesto de la gerencia X, listado de proveedores..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="inp-label">Formato preferido de respuesta</label>
+        <select class="inp">
+          <option>PDF / digital</option>
+          <option>Impreso</option>
+          <option>Excel / CSV</option>
+        </select>
+      </div>
+      <div style="background:#fff8e8;border-radius:var(--radius-sm);padding:10px;font-size:11px;color:#7a4800;margin-bottom:14px;line-height:1.5;">
+        ⏱️ Plazo legal: <strong>7 días hábiles</strong>. Si no responden: recurso de apelación ante el mismo organismo. Si persiste: denuncia a la <strong>Defensoría del Pueblo</strong>.
+      </div>
+      <button class="btn btn-gold" onclick="generarSolicitud()">📄 Generar solicitud formal</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- ══ BOTTOM NAV ══ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="goTo('home')"><div class="nav-icon">🏠</div>Inicio</button>
+  <button class="nav-item" id="nav-triaje" onclick="goTo('triaje')"><div class="nav-icon">⚖️</div>Triaje</button>
+  <button class="nav-item" id="nav-anti" onclick="goTo('anti')"><div class="nav-icon">🏛️</div>Anticorr.</button>
+  <button class="nav-item" id="nav-mapa" onclick="goTo('mapa')"><div class="nav-icon">🗺️</div>Mapa</button>
+  <button class="nav-item" id="nav-biblioteca" onclick="goTo('biblioteca')"><div class="nav-icon">📚</div>Leyes</button>
+  <button class="nav-item" id="nav-evidencia" onclick="goTo('evidencia')"><div class="nav-icon">📷</div>Prueba</button>
+</nav>
+
+</div><!-- /app -->
+
+<!-- ══ SOS MODAL ══ -->
+<div class="modal-overlay" id="sos-modal" onclick="closeSOS(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="font-family:var(--serif);font-size:20px;color:var(--red);text-align:center;margin-bottom:5px;">🚨 Asistencia inmediata</div>
+    <div style="font-size:12px;color:var(--text2);text-align:center;margin-bottom:14px;">Tu ubicación está siendo compartida con tus contactos de emergencia.</div>
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:9px 12px;font-family:var(--mono);font-size:10px;color:var(--text2);margin-bottom:14px;">
+      📍 Loc: -12.0464°S, 77.0428°W · Lima, Perú<br>🕐 <span id="sos-time"></span>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:7px;">Contactos de emergencia</div>
+    <div class="contact-item"><div class="contact-avatar">👨‍👩‍👦</div><div><div style="font-size:12px;font-weight:500;">Familia Ramírez</div><div style="font-size:10px;color:var(--text3);">Contacto principal</div></div><button class="contact-call" onclick="showToast('📞 Llamando a Familia Ramírez...')">📞</button></div>
+    <div class="contact-item"><div class="contact-avatar">👮</div><div><div style="font-size:12px;font-weight:500;">PNP · 105</div><div style="font-size:10px;color:var(--text3);">Policía Nacional del Perú</div></div><button class="contact-call" onclick="showToast('📞 Conectando con PNP 105...')">📞</button></div>
+    <div class="contact-item"><div class="contact-avatar">⚖️</div><div><div style="font-size:12px;font-weight:500;">Serenazgo · 107</div><div style="font-size:10px;color:var(--text3);">Emergencias municipales</div></div><button class="contact-call" onclick="showToast('📞 Conectando Serenazgo...')">📞</button></div>
+    <div style="margin:14px 0 8px;font-size:11px;font-weight:600;color:var(--text2);">Primeros auxilios legales 💬</div>
+    <div class="chat-bubble bot">Hola. ¿Eres víctima de un delito ahora mismo?</div>
+    <div class="chat-bubble">Sí, me están robando</div>
+    <div class="chat-bubble bot">Mantén la calma. No opongas resistencia. Tu ubicación ya fue enviada a tus contactos. Si puedes, activa la grabación de audio.</div>
+    <div style="height:10px"></div>
+    <button class="btn btn-red" onclick="closeSOS()">Cerrar asistencia de emergencia</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════
+   NAVEGACIÓN
+═══════════════════════════════ */
+const SCREENS = ['home','triaje','evidencia','tracking','mapa','biblioteca','anti'];
+function goTo(id) {
+  SCREENS.forEach(s => {
+    document.getElementById('screen-'+s).classList.toggle('active', s===id);
+    const n = document.getElementById('nav-'+s);
+    if(n) n.classList.toggle('active', s===id);
+  });
+  if(id==='mapa') { setTimeout(initMapa, 100); }
+  if(id==='biblioteca') renderArticulos();
+  if(id==='anti') { renderCanales(); }
+  document.querySelector('.content').scrollTop = 0;
+}
+
+/* ═══════════════════════════════
+   TOAST / SOS
+═══════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+function openSOS() {
+  document.getElementById('sos-modal').classList.add('open');
+  document.getElementById('sos-time').textContent = new Date().toLocaleString('es-PE');
+}
+function closeSOS(e) {
+  if(!e || e.target===document.getElementById('sos-modal'))
+    document.getElementById('sos-modal').classList.remove('open');
+}
+
+/* ═══════════════════════════════
+   TRIAJE f(x) — categorías
+═══════════════════════════════ */
+const PREGUNTAS = {
+  comun:[
+    {txt:'¿Qué tipo de hecho quieres denunciar?',hint:'Selecciona la categoría más cercana.',opts:[{i:'💰',t:'Me robaron o hurtaron bienes',v:'hurto'},{i:'🤕',t:'Sufrí agresión física o amenazas',v:'lesiones'},{i:'💻',t:'Fraude, estafa o delito informático',v:'estafa'},{i:'🏠',t:'Daño a mi propiedad',v:'danos'}]},
+    {txt:'¿Hubo violencia física o intimidación con armas?',hint:'Incluye amenazas verbales con arma o instrumento.',opts:[{i:'⚠️',t:'Sí, hubo violencia o arma',v:'si'},{i:'✅',t:'No, fue sin violencia',v:'no'}]},
+    {txt:'¿Cuántas personas participaron?',hint:'Determina si aplica figura de banda.',opts:[{i:'👤',t:'Una sola persona',v:'uno'},{i:'👥',t:'Dos o tres personas',v:'dos'},{i:'🚨',t:'Cuatro o más (banda)',v:'banda'}]},
+    {txt:'¿Valor aproximado sustraído o dañado?',hint:'RMV 2024 = S/. 1,025.',opts:[{i:'📉',t:'Menos de 1 RMV (S/. 1,025)',v:'menor'},{i:'📊',t:'Entre 1 y 10 RMV',v:'medio'},{i:'📈',t:'Más de 10 RMV',v:'mayor'}]},
+    {txt:'¿Dónde ocurrió el hecho?',hint:'La ubicación puede agravar la pena.',opts:[{i:'🏙️',t:'Vía pública o establecimiento',v:'publico'},{i:'🏠',t:'Dentro de domicilio propio',v:'domicilio'}]},
+    {txt:'¿Tienes identificado al presunto autor?',hint:'Afecta la estrategia de investigación.',opts:[{i:'🆔',t:'Sí, lo conozco o tengo datos',v:'identificado'},{i:'❓',t:'No, es desconocido',v:'desconocido'}]},
+  ],
+  corrupcion:[
+    {txt:'¿Qué tipo de acto de corrupción ocurrió?',hint:'Selecciona el que mejor describe la situación.',opts:[{i:'💵',t:'Me pidieron una coima / soborno',v:'cohecho'},{i:'🏦',t:'Funcionario robó fondos públicos',v:'peculado'},{i:'👥',t:'Abuso de autoridad o poder',v:'abuso'},{i:'🤝',t:'Tráfico de influencias',v:'influencias'}]},
+    {txt:'¿El funcionario involucrado es de qué nivel?',hint:'Determina la fiscalía competente.',opts:[{i:'🏛️',t:'Gobierno nacional / ministerio',v:'nacional'},{i:'🏢',t:'Gobierno regional o local',v:'regional'},{i:'🏫',t:'Entidad pública (hospital, escuela)',v:'entidad'}]},
+    {txt:'¿Tienes alguna evidencia del hecho?',hint:'Recibos, audios, capturas, testigos.',opts:[{i:'📄',t:'Sí, tengo documentos o registros',v:'si_evidencia'},{i:'🎤',t:'Sí, tengo testigos',v:'testigos'},{i:'❌',t:'No tengo evidencia aún',v:'no'}]},
+    {txt:'¿Cuál es el monto aproximado involucrado?',hint:'Afecta la gravedad del delito y la pena.',opts:[{i:'💰',t:'Menos de S/. 10,000',v:'menor'},{i:'💼',t:'Entre S/. 10,000 y S/. 100,000',v:'medio'},{i:'🏦',t:'Más de S/. 100,000',v:'mayor'}]},
+  ],
+  laboral:[
+    {txt:'¿Qué tipo de irregularidad laboral ocurrió?',hint:'En el ámbito del servicio público.',opts:[{i:'📋',t:'Incumplimiento de funciones',v:'incump'},{i:'🚫',t:'Nepotismo o favoritismo',v:'nepotismo'},{i:'💸',t:'Pago irregular o fantasma',v:'pago'},{i:'📝',t:'Falsedad en documentos oficiales',v:'falsedad'}]},
+    {txt:'¿Ya presentaste una queja interna?',hint:'El proceso interno debe agotarse antes de recurrir a órganos externos.',opts:[{i:'✅',t:'Sí, la queja fue ignorada',v:'ignorada'},{i:'🔄',t:'Está en proceso interno',v:'proceso'},{i:'❌',t:'No, es mi primera acción',v:'primera'}]},
+    {txt:'¿Tienes documentación de respaldo?',hint:'Memorandos, correos, resoluciones.',opts:[{i:'📂',t:'Sí, tengo documentos escritos',v:'si'},{i:'💾',t:'Sí, tengo correos o digitales',v:'digital'},{i:'❌',t:'No tengo documentación',v:'no'}]},
+  ]
+};
+
+const RESULTADOS = {
+  comun: (r) => {
+    const v=r[0],viol=r[1],pers=r[2],val=r[3],lugar=r[4],autor=r[5];
+    if(v==='lesiones') return {d:'Lesiones dolosas',rows:[['Artículo','Art. 121 C.P.'],['Pena','3 a 8 años'],['Competencia','Fiscalía Penal Ordinaria'],['Dónde denunciar','Comisaría del sector'],['Prescripción','5 años']]};
+    if(v==='estafa') return {d:'Estafa / Fraude informático',rows:[['Artículo','Art. 196 / Ley 30096'],['Pena','1 a 6 años'],['Competencia','FECI – Fiscalía Informática'],['Dónde denunciar','Fiscalía o DIVINDAT PNP'],['Prescripción','5 años']]};
+    if(v==='danos') return {d:'Daño de bien ajeno',rows:[['Artículo','Art. 205 C.P.'],['Pena','1 a 3 años'],['Competencia','Juzgado de Paz Letrado'],['Dónde denunciar','Comisaría más cercana'],['Prescripción','2 años']]};
+    if(viol==='si') {
+      if(pers==='banda') return {d:'Robo agravado – banda',rows:[['Artículo','Art. 189 C.P. (agrav.)'],['Pena','12 a 20 años'],['Competencia','Fiscalía Penal Corporativa'],['Organismo','PNP – División de Robos'],['Prescripción','10 años']]};
+      return {d:'Robo con violencia',rows:[['Artículo','Art. 188–189 C.P.'],['Pena','3 a 8 años'],['Competencia','Fiscalía Penal'],['Dónde denunciar','Comisaría del sector'],['Prescripción','10 años']]};
+    }
+    if(val==='menor') return {d:'Hurto simple',rows:[['Artículo','Art. 185 C.P.'],['Pena','1 a 3 años'],['Competencia','Juzgado de Paz Letrado'],['Dónde denunciar','Comisaría más cercana'],['Prescripción','3 años']]};
+    if(pers==='banda') return {d:'Hurto agravado – pluralidad',rows:[['Artículo','Art. 186 C.P.'],['Pena','3 a 6 años'],['Competencia','Fiscalía Penal'],['Dónde denunciar','Comisaría del sector'],['Prescripción','5 años']]};
+    return {d:'Hurto calificado',rows:[['Artículo','Art. 186 C.P.'],['Pena','3 a 6 años'],['Competencia','Fiscalía Penal'],['Identificado',autor==='identificado'?'Incluir en denuncia':'Solicitar investigación'],['Prescripción','5 años']]};
+  },
+  corrupcion: (r) => {
+    const tipo=r[0],nivel=r[1],ev=r[2],monto=r[3];
+    const arts={cohecho:['Art. 393–398 C.P.','Cohecho pasivo propio','4 a 6 años'],peculado:['Art. 387 C.P.','Peculado doloso','4 a 8 años'],abuso:['Art. 376 C.P.','Abuso de autoridad','2 a 3 años'],influencias:['Art. 400 C.P.','Tráfico de influencias','4 a 6 años']};
+    const a = arts[tipo] || arts.cohecho;
+    const comp = nivel==='nacional'?'FECOR – Fiscalía Anticorrupción':nivel==='regional'?'Fiscalía Especializada Anticorrupción Regional':'Fiscalía Provincial Penal';
+    return {d:a[1],rows:[['Artículo',a[0]],['Pena base',a[2]],['Competencia',comp],['También denunciar','Contraloría General (CGR)'],['Convención aplicable','CICC · UNCAC'],['Evidencia',ev==='no'?'Usar módulo de evidencia':'Adjuntar a denuncia']]};
+  },
+  laboral: (r) => {
+    const tipo=r[0],prev=r[1],docs=r[2];
+    const arts={incump:['Art. 85 Ley 30057','Falta grave administrativa'],nepotismo:['Ley 26771','Nepotismo – prohibición'],pago:['Art. 387 C.P.','Peculado / pago irregular'],falsedad:['Art. 427 C.P.','Falsedad en documentos']};
+    const a = arts[tipo] || arts.incump;
+    const dest = prev==='primera'?'Oficina de Control Interno (OCI) de la entidad':prev==='proceso'?'Contraloría General (CGR)':'CGR + Fiscalía Penal';
+    return {d:a[1],rows:[['Artículo',a[0]],['Destino denuncia',dest],['SERVIR',prev==='ignorada'?'Denunciar ante Tribunal Servir':'Agotar vía interna primero'],['Documentación',docs==='no'?'Obtener copia de expediente':'Conservar y no alterar']]};
+  }
+};
+
+let respuestas={}, qActual=0, catActiva='comun';
+
+function setCategoria(cat, btn) {
+  catActiva = cat;
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  resetTriaje();
+}
+
+function initTriaje() {
+  qActual=0; respuestas={};
+  document.getElementById('question-card').style.display='block';
+  document.getElementById('resultado-card').classList.remove('show');
+  document.getElementById('disclaimer').classList.remove('show');
+  renderPregunta();
+}
+
+function renderPregunta() {
+  const qs = PREGUNTAS[catActiva];
+  if(qActual >= qs.length) { mostrarResultado(); return; }
+  const q = qs[qActual];
+  const total = qs.length;
+  let bars='';
+  for(let i=0;i<total;i++) bars+=`<div class="progress-step ${i<qActual?'done':i===qActual?'active':''}"></div>`;
+  document.getElementById('prog-steps').innerHTML = bars;
+  document.getElementById('prog-label').textContent = `Pregunta ${qActual+1} de ${total}`;
+  document.getElementById('q-number').textContent = `PREGUNTA ${String(qActual+1).padStart(2,'0')}`;
+  document.getElementById('q-text').textContent = q.txt;
+  document.getElementById('q-hint').textContent = q.hint;
+  document.getElementById('q-options').innerHTML = q.opts.map(o=>
+    `<button class="q-opt" onclick="elegir('${o.v}',this)"><span style="font-size:17px;flex-shrink:0;">${o.i}</span>${o.t}</button>`
+  ).join('');
+}
+
+function elegir(val, btn) {
+  document.querySelectorAll('.q-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  respuestas[qActual]=val;
+  setTimeout(()=>{ qActual++; renderPregunta(); }, 300);
+}
+
+function mostrarResultado() {
+  document.getElementById('question-card').style.display='none';
+  const res = RESULTADOS[catActiva](respuestas);
+  document.getElementById('res-delito').textContent = res.d;
+  document.getElementById('res-rows').innerHTML = res.rows.map(r=>
+    `<div class="res-row"><span class="res-key">${r[0]}</span><span class="res-val">${r[1]}</span></div>`
+  ).join('');
+  document.getElementById('resultado-card').classList.add('show');
+  document.getElementById('disclaimer').classList.add('show');
+}
+
+function resetTriaje() {
+  document.getElementById('resultado-card').classList.remove('show');
+  document.getElementById('disclaimer').classList.remove('show');
+  document.getElementById('question-card').style.display='block';
+  initTriaje();
+}
+
+/* ═══════════════════════════════
+   EVIDENCIA + SHA-256
+═══════════════════════════════ */
+let evidencias=[];
+async function sha256(buffer) {
+  const h = await crypto.subtle.digest('SHA-256',buffer);
+  return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function handleFiles(files) {
+  document.getElementById('ev-gps').textContent='-12.0464°S, 77.0428°W';
+  document.getElementById('ev-hora').textContent=new Date().toLocaleTimeString('es-PE');
+  for(const f of files) {
+    const buf=await f.arrayBuffer(), hash=await sha256(buf);
+    evidencias.push({nombre:f.name,tipo:f.type.startsWith('image')?'img':'doc',url:URL.createObjectURL(f),hash,fecha:new Date().toLocaleDateString('es-PE'),hora:new Date().toLocaleTimeString('es-PE'),size:(f.size/1024).toFixed(1)+'KB'});
+  }
+  renderEvidencias();
+  document.getElementById('ev-count').textContent=evidencias.length+' evidencia'+(evidencias.length!==1?'s':'');
+  showToast('✅ '+files.length+' archivo(s) con hash SHA-256');
+}
+function renderEvidencias() {
+  if(!evidencias.length){ document.getElementById('evidence-list').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;">No hay evidencias aún.</div>'; return; }
+  document.getElementById('evidence-list').innerHTML = evidencias.map((ev,i)=>`
+    <div class="evidence-item">
+      <div class="ev-thumb">${ev.tipo==='img'?`<img src="${ev.url}" alt="">`:'<span style="font-size:22px;">📄</span>'}</div>
+      <div class="ev-info">
+        <div class="ev-name">${ev.nombre}</div>
+        <div class="ev-meta">📅 ${ev.fecha} · 🕐 ${ev.hora} · ${ev.size}</div>
+        <div class="ev-meta">📍 -12.0464°S, 77.0428°W</div>
+        <div class="ev-hash">SHA256: ${ev.hash.substring(0,28)}...</div>
+        <div style="font-size:10px;color:var(--green2);margin-top:3px;">✓ Integridad verificada</div>
+      </div>
+      <button class="ev-del" onclick="eliminarEv(${i})">🗑</button>
+    </div>`).join('');
+}
+function eliminarEv(i){ evidencias.splice(i,1); renderEvidencias(); document.getElementById('ev-count').textContent=evidencias.length+' evidencia'+(evidencias.length!==1?'s':''); }
+
+/* ═══════════════════════════════
+   MAPA DUAL
+═══════════════════════════════ */
+const CENTROS = [
+  {nombre:'Comisaría San Isidro',tipo:'comisaria',icon:'🚔',bg:'#e8f0fe',dir:'Av. Conquistadores 1855, San Isidro',tel:'(01) 264-4555',lat:-12.0931,lng:-77.0465,dist:'0.8 km',horario:'24 horas'},
+  {nombre:'Comisaría Miraflores',tipo:'comisaria',icon:'🚔',bg:'#e8f0fe',dir:'Av. José Larco 1365, Miraflores',tel:'(01) 243-3520',lat:-12.1191,lng:-77.0282,dist:'2.1 km',horario:'24 horas'},
+  {nombre:'Fiscalía Lima Norte',tipo:'fiscalia',icon:'⚖️',bg:'#fff3e0',dir:'Jr. Quilca 431, Cercado de Lima',tel:'(01) 428-8888',lat:-12.0464,lng:-77.0282,dist:'3.4 km',horario:'Lun–Vie 8am–5pm'},
+  {nombre:'FECOR – Anticorrupción',tipo:'fecor',icon:'🔍',bg:'#f0ebff',dir:'Av. Abancay 491, Lima',tel:'(01) 427-1512',lat:-12.0519,lng:-77.0203,dist:'3.8 km',horario:'Lun–Vie 8am–5pm'},
+  {nombre:'Contraloría General',tipo:'contraloria',icon:'🏛️',bg:'#e2f5ec',dir:'Jr. Camilo Carrillo 114, Lima',tel:'(01) 330-3000',lat:-12.0638,lng:-77.0536,dist:'4.2 km',horario:'Lun–Vie 8:30am–4:30pm'},
+  {nombre:'Defensoría del Pueblo',tipo:'defensoria',icon:'🛡️',bg:'#fde8e8',dir:'Jr. Ucayali 388, Lima',tel:'0800-15170',lat:-12.0570,lng:-77.0260,dist:'4.5 km',horario:'Lun–Vie 8am–5pm'},
+  {nombre:'Comisaría Barranco',tipo:'comisaria',icon:'🚔',bg:'#e8f0fe',dir:'Av. Pedro de Osma 153, Barranco',tel:'(01) 467-0030',lat:-12.1481,lng:-77.0228,dist:'5.1 km',horario:'24 horas'},
+];
+
+let mapaLeaflet=null, mapaIniciado=false, capaActiva='calor';
+
+function setMapaCapa(capa) {
+  capaActiva = capa;
+  document.getElementById('tab-calor').classList.toggle('active', capa==='calor');
+  document.getElementById('tab-centros').classList.toggle('active', capa==='centros');
+  document.getElementById('capa-calor').style.display = capa==='calor'?'block':'none';
+  document.getElementById('capa-centros').style.display = capa==='centros'?'block':'none';
+  if(capa==='calor') drawHeatmap();
+  if(capa==='centros') initLeaflet();
+}
+
+function initMapa() {
+  if(capaActiva==='calor') drawHeatmap();
+  else initLeaflet();
+}
+
+function drawHeatmap() {
+  const canvas=document.getElementById('heatmap-canvas');
+  if(!canvas||!canvas.offsetWidth) return;
+  const W=canvas.offsetWidth, H=canvas.offsetHeight;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#1a2f4e'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const pts=[{x:.35,y:.45,r:75,c:'rgba(192,57,43,',i:.85},{x:.65,y:.35,r:60,c:'rgba(192,57,43,',i:.75},{x:.2,y:.6,r:52,c:'rgba(243,156,18,',i:.7},{x:.75,y:.6,r:46,c:'rgba(243,156,18,',i:.65},{x:.5,y:.25,r:38,c:'rgba(39,174,96,',i:.55},{x:.15,y:.3,r:32,c:'rgba(39,174,96,',i:.45},{x:.85,y:.4,r:28,c:'rgba(39,174,96,',i:.4},{x:.4,y:.7,r:42,c:'rgba(243,156,18,',i:.6},{x:.6,y:.75,r:32,c:'rgba(243,156,18,',i:.5}];
+  pts.forEach(p=>{const g=ctx.createRadialGradient(p.x*W,p.y*H,0,p.x*W,p.y*H,p.r);g.addColorStop(0,p.c+p.i+')');g.addColorStop(.4,p.c+(p.i*.5)+')');g.addColorStop(1,p.c+'0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x*W,p.y*H,p.r,0,Math.PI*2);ctx.fill();});
+  ctx.font='500 11px DM Sans,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.textAlign='center';
+  [{x:.35,y:.43,n:'Cercado'},{x:.65,y:.33,n:'SJL'},{x:.2,y:.58,n:'Los Olivos'},{x:.5,y:.23,n:'Miraflores'},{x:.75,y:.58,n:'La Molina'}].forEach(z=>ctx.fillText(z.n,z.x*W,z.y*H));
+}
+
+function initLeaflet() {
+  if(mapaIniciado) return;
+  mapaIniciado = true;
+  const mapDiv = document.getElementById('leaflet-map');
+  mapDiv.style.display='block';
+  mapaLeaflet = L.map('leaflet-map', {zoomControl:false,attributionControl:false}).setView([-12.0931,-77.0465],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(mapaLeaflet);
+  L.control.zoom({position:'bottomright'}).addTo(mapaLeaflet);
+  const icons = {
+    comisaria: '🚔', fiscalia: '⚖️', fecor: '🔍',
+    contraloria: '🏛️', defensoria: '🛡️'
+  };
+  CENTROS.forEach(c=>{
+    const div = L.divIcon({html:`<div style="background:${c.bg};border:2px solid #0A2540;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">${c.icon}</div>`,iconSize:[32,32],className:''});
+    L.marker([c.lat,c.lng],{icon:div})
+      .addTo(mapaLeaflet)
+      .bindPopup(`<div class="popup-title">${c.nombre}</div><div class="popup-dir">📍 ${c.dir}</div><div class="popup-tel">📞 ${c.tel} · ${c.horario}</div><a class="popup-btn" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank">🗺️ Cómo llegar</a>`);
+  });
+  renderCentrosList();
+  setTimeout(()=>mapaLeaflet.invalidateSize(),200);
+}
+
+function renderCentrosList() {
+  document.getElementById('centros-list').innerHTML = CENTROS.map((c,i)=>`
+    <div class="centro-item" onclick="focusCentro(${i})">
+      <div class="centro-icon" style="background:${c.bg};">${c.icon}</div>
+      <div style="flex:1;">
+        <div class="centro-name">${c.nombre}</div>
+        <div class="centro-dir">${c.dir}</div>
+        <div class="centro-dist">📍 ${c.dist} de distancia · ${c.horario}</div>
+        <div class="centro-btns">
+          <button class="centro-btn centro-btn-map" onclick="event.stopPropagation();abrirMaps(${c.lat},${c.lng})">🗺️ Cómo llegar</button>
+          <button class="centro-btn centro-btn-tel" onclick="event.stopPropagation();showToast('📞 Marcando ${c.tel}...')">📞 Llamar</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function focusCentro(i) {
+  if(mapaLeaflet) mapaLeaflet.setView([CENTROS[i].lat,CENTROS[i].lng],15);
+  document.querySelector('.mapa-container').scrollIntoView({behavior:'smooth'});
+}
+function abrirMaps(lat,lng) {
+  showToast('🗺️ Abriendo Google Maps...');
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,'_blank');
+}
+
+/* ═══════════════════════════════
+   BIBLIOTECA AMPLIADA
+═══════════════════════════════ */
+const LEYES = {
+  penal:[
+    {art:'Art. 185',titulo:'Hurto simple',texto:'El que, para obtener provecho, se apodera ilegítimamente de un bien mueble, total o parcialmente ajeno, sustrayéndolo del lugar donde se encuentra, será reprimido con pena privativa de libertad no menor de uno ni mayor de tres años. Se equipararán a bien mueble la energía eléctrica, el gas, el agua y cualquier otra energía o elemento que tenga valor económico.'},
+    {art:'Art. 186',titulo:'Hurto agravado',texto:'El agente será reprimido con pena privativa de libertad no menor de tres ni mayor de seis años si el hurto es cometido: 1. En casa habitada. 2. Durante la noche. 3. Mediante destreza, escalamiento, destrucción o rotura de obstáculos. 4. Con ocasión de incendio, inundación, naufragio, calamidad pública o desgracia particular del agraviado.'},
+    {art:'Art. 188',titulo:'Robo',texto:'El que se apodera ilegítimamente de un bien mueble ajeno, para aprovecharse de él, sustrayéndolo del lugar en que se encuentra, empleando violencia contra la persona o amenazándola con un peligro inminente para su vida o integridad física será reprimido con pena privativa de libertad no menor de tres ni mayor de ocho años.'},
+    {art:'Art. 189',titulo:'Robo agravado',texto:'La pena será no menor de doce ni mayor de veinte años si el robo es cometido: 1. En inmueble habitado. 2. Durante la noche o en lugar desolado. 3. A mano armada. 4. Con el concurso de dos o más personas. 5. En cualquier medio de locomoción de transporte público o privado.'},
+    {art:'Art. 196',titulo:'Estafa',texto:'El que procura para sí o para otro un provecho ilícito en perjuicio de tercero, induciendo o manteniendo en error al agraviado mediante engaño, astucia, ardid u otra forma fraudulenta, será reprimido con pena privativa de libertad no menor de uno ni mayor de seis años.'},
+  ],
+  civil:[
+    {art:'Art. 1969',titulo:'Responsabilidad extracontractual',texto:'Aquel que por dolo o culpa causa un daño a otro está obligado a indemnizarlo. El descargo por falta de dolo o culpa corresponde a su autor.'},
+    {art:'Art. 1984',titulo:'Daño moral',texto:'El daño moral es indemnizado considerando su magnitud y el menoscabo producido a la víctima o a su familia.'},
+    {art:'Art. 923',titulo:'Propiedad',texto:'La propiedad es el poder jurídico que permite usar, disfrutar, disponer y reivindicar un bien. Debe ejercerse en armonía con el interés social y dentro de los límites de la ley.'},
+  ],
+  constitucion:[
+    {art:'Art. 2 (inc. 24)',titulo:'Libertad y seguridad personal',texto:'Toda persona tiene derecho a la libertad y a la seguridad personal. No se permite forma alguna de restricción de la libertad personal, salvo en los casos previstos por la ley. Están prohibidas la esclavitud, la servidumbre y la trata de seres humanos en cualquiera de sus formas.'},
+    {art:'Art. 139 (inc. 3)',titulo:'Tutela jurisdiccional efectiva',texto:'Son principios y derechos de la función jurisdiccional: La observancia del debido proceso y la tutela jurisdiccional. Ninguna persona puede ser desviada de la jurisdicción predeterminada por la ley, ni sometida a procedimiento distinto de los previamente establecidos.'},
+    {art:'Art. 2 (inc. 5)',titulo:'Acceso a información pública',texto:'A solicitar sin expresión de causa la información que requiera y a recibirla de cualquier entidad pública, en el plazo legal, con el costo que suponga el pedido. Se exceptúan las informaciones que afectan la intimidad personal y las que expresamente se excluyan por ley o por razones de seguridad nacional.'},
+  ],
+  anticorrupcion:[
+    {art:'Art. 393 C.P.',titulo:'Cohecho pasivo propio',texto:'El funcionario o servidor público que acepte o reciba donativo, promesa o cualquier otra ventaja o beneficio, para realizar u omitir un acto en violación de sus obligaciones o el que las acepta a consecuencia de haber faltado a ellas, será reprimido con pena privativa de libertad no menor de cinco ni mayor de ocho años.'},
+    {art:'Art. 387 C.P.',titulo:'Peculado doloso',texto:'El funcionario o servidor público que se apropia o utiliza, en cualquier forma, para sí o para otro, caudales o efectos cuya percepción, administración o custodia le estén confiados por razón de su cargo, será reprimido con pena privativa de libertad no menor de cuatro ni mayor de ocho años.'},
+    {art:'Art. 400 C.P.',titulo:'Tráfico de influencias',texto:'El que, invocando o teniendo influencias reales o simuladas, recibe, hace dar o prometer para sí o para un tercero, donativo o promesa o cualquier otra ventaja con el ofrecimiento de interceder ante un funcionario o servidor público que ha de conocer, esté conociendo o haya conocido un caso judicial o administrativo, será reprimido con pena privativa de libertad no menor de cuatro ni mayor de seis años.'},
+    {art:'CICC – Art. II',titulo:'Convención Interamericana Anticorrupción',texto:'Los propósitos de la presente Convención son: 1. Promover y fortalecer el desarrollo, por cada uno de los Estados Partes, de los mecanismos necesarios para prevenir, detectar, sancionar y erradicar la corrupción; y 2. Promover, facilitar y regular la cooperación entre los Estados Partes a fin de asegurar la eficacia de las medidas y acciones para prevenir, detectar, sancionar y erradicar los actos de corrupción en el ejercicio de las funciones públicas.'},
+    {art:'UNCAC – Art. 1',titulo:'Convención ONU contra la Corrupción',texto:'Los fines de la presente Convención son: a) Promover y fortalecer las medidas para prevenir y combatir más eficaz y eficientemente la corrupción; b) Promover, facilitar y apoyar la cooperación internacional y la asistencia técnica en la prevención y la lucha contra la corrupción, incluida la recuperación de activos; c) Promover la integridad, la obligación de rendir cuentas y la debida gestión de los asuntos y los bienes públicos.'},
+    {art:'Ley 27806',titulo:'Ley de Transparencia y Acceso a Información Pública',texto:'La presente Ley tiene por finalidad promover la transparencia de los actos del Estado y regular el derecho fundamental del acceso a la información consagrado en el numeral 5 del Artículo 2 de la Constitución Política del Perú. Toda información que posea el Estado se presume pública, salvo las excepciones expresamente previstas por el artículo 15 de la presente Ley.'},
+  ]
+};
+
+let libroActivo='penal', busqueda='';
+function setLibro(l,btn){ libroActivo=l; document.querySelectorAll('.libro-tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderArticulos(); }
+function buscarLegal(q){ busqueda=q.toLowerCase(); renderArticulos(); }
+function hl(txt,q){ if(!q) return txt; return txt.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'),'<span class="highlight">$1</span>'); }
+function renderArticulos(){
+  const arts=LEYES[libroActivo];
+  const f=busqueda?arts.filter(a=>a.art.toLowerCase().includes(busqueda)||a.titulo.toLowerCase().includes(busqueda)||a.texto.toLowerCase().includes(busqueda)):arts;
+  if(!f.length){ document.getElementById('articulos-list').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;">Sin resultados para "'+busqueda+'"</div>'; return; }
+  document.getElementById('articulos-list').innerHTML=f.map((a,i)=>`
+    <div class="articulo-item">
+      <div class="art-header" onclick="toggleArt(${i})">
+        <div class="art-num">${hl(a.art,busqueda)}</div>
+        <div class="art-title">${hl(a.titulo,busqueda)}</div>
+        <div class="art-chevron" id="chev-${i}">▾</div>
+      </div>
+      <div class="art-body" id="body-${i}">${hl(a.texto,busqueda)}</div>
+    </div>`).join('');
+}
+function toggleArt(i){ document.getElementById('body-'+i).classList.toggle('open'); document.getElementById('chev-'+i).classList.toggle('open'); }
+
+/* ═══════════════════════════════
+   ANTICORRUPCIÓN
+═══════════════════════════════ */
+function showAntiSub(sub) {
+  document.querySelectorAll('#screen-anti .sub-screen').forEach(s=>s.classList.remove('active'));
+  if(sub==='menu') { document.getElementById('anti-menu-view').classList.add('active'); return; }
+  const map = {'denuncia-anon':'anti-denuncia-anon','verificador':'anti-verificador','canales':'anti-canales','acceso-info':'anti-acceso-info'};
+  const el = document.getElementById(map[sub]);
+  if(el) el.classList.add('active');
+  document.querySelector('.content').scrollTop=0;
+}
+
+function enviarDenunciaAnon() {
+  const tipo = document.getElementById('tipo-corrupcion').value;
+  if(!tipo){ showToast('⚠️ Selecciona el tipo de acto'); return; }
+  showToast('🔒 Denuncia cifrada enviada a CGR y FECOR');
+  setTimeout(()=>showAntiSub('menu'),1500);
+}
+
+const FUNCIONARIOS_DEMO = [
+  {nombre:'Carlos Mendoza Ríos',cargo:'Gerente de Logística',inst:'Municipalidad de Lima',dni:'08756432',sanc:'Ninguna',estado:'Activo',ok:true},
+  {nombre:'Ana Torres Villanueva',cargo:'Directora de Obras',inst:'Gobierno Regional Lima',dni:'23456789',sanc:'1 sanción (2022)',estado:'Inhabilitado 2 años',ok:false},
+];
+
+function buscarFuncionario() {
+  const q = document.getElementById('verify-input').value.trim().toLowerCase();
+  if(!q){ showToast('⚠️ Ingresa un nombre o DNI'); return; }
+  const f = FUNCIONARIOS_DEMO.find(f=>f.nombre.toLowerCase().includes(q)||f.dni.includes(q)) || FUNCIONARIOS_DEMO[0];
+  document.getElementById('vfy-name').textContent=f.nombre;
+  document.getElementById('vfy-cargo').textContent=f.cargo+' · '+f.inst;
+  document.getElementById('vfy-dni').textContent=f.dni;
+  document.getElementById('vfy-inst').textContent=f.inst;
+  document.getElementById('vfy-cargo2').textContent=f.cargo;
+  document.getElementById('vfy-sanc').textContent=f.sanc;
+  document.getElementById('vfy-estado').textContent=f.estado;
+  const s=document.getElementById('vfy-status');
+  s.style.background=f.ok?'#e2f5ec':'#fde8e8';
+  s.innerHTML=f.ok?'<span style="font-size:18px;">✅</span><span style="font-size:13px;font-weight:500;color:var(--green);">Sin sanciones vigentes</span>':'<span style="font-size:18px;">🚫</span><span style="font-size:13px;font-weight:500;color:var(--red);">Inhabilitado – no puede ejercer cargo público</span>';
+  document.getElementById('verify-result').style.display='block';
+  showToast('🔍 Consulta RNSSC completada');
+}
+
+const CANALES = [
+  {icon:'🏛️',bg:'#e2f5ec',nombre:'Contraloría General de la República (CGR)',tipo:'Fiscalización del gasto público',desc:'Recibe denuncias sobre malversación, peculado e irregularidades en el uso de recursos públicos. También puedes denunciar obras inconclusas.',tel:'(01) 330-3000',web:'contraloria.gob.pe',color:'var(--green)'},
+  {icon:'⚖️',bg:'#fff3e0',nombre:'FECOR – Fiscalía Anticorrupción',tipo:'Persecución penal de la corrupción',desc:'Fiscalía especializada en delitos de corrupción de funcionarios: cohecho, peculado, colusión, tráfico de influencias.',tel:'(01) 427-1512',web:'mpfn.gob.pe',color:'var(--amber)'},
+  {icon:'🛡️',bg:'#fde8e8',nombre:'Defensoría del Pueblo',tipo:'Derechos ciudadanos y transparencia',desc:'Atiende quejas contra actos de la administración pública que vulneren derechos fundamentales o el principio de legalidad.',tel:'0800-15170',web:'defensoria.gob.pe',color:'var(--red)'},
+  {icon:'💼',bg:'#f0ebff',nombre:'SUNAT – Intendencia de Denuncias',tipo:'Delitos tributarios y aduaneros',desc:'Recibe denuncias sobre evasión tributaria, corrupción de funcionarios de SUNAT y delitos de contrabando.',tel:'0801-12-100',web:'sunat.gob.pe',color:'var(--purple)'},
+  {icon:'📋',bg:'#e8f0fe',nombre:'SERVIR – Tribunal del Servicio Civil',tipo:'Faltas disciplinarias de servidores',desc:'Conoce en segunda instancia los procesos disciplinarios contra servidores civiles. Denuncias por nepotismo, incumplimiento de funciones.',tel:'(01) 205-8888',web:'servir.gob.pe',color:'var(--navy2)'},
+];
+
+function renderCanales() {
+  document.getElementById('canales-list').innerHTML = CANALES.map(c=>`
+    <div class="canal-item">
+      <div class="canal-header">
+        <div class="canal-icon" style="background:${c.bg};">${c.icon}</div>
+        <div><div class="canal-name">${c.nombre}</div><div class="canal-tipo">${c.tipo}</div></div>
+      </div>
+      <div class="canal-desc">${c.desc}</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="showToast('📞 Marcando ${c.tel}...')">📞 ${c.tel}</button>
+        <button class="btn btn-outline btn-sm" style="flex:1;" onclick="showToast('🌐 Abriendo ${c.web}...')">🌐 Web</button>
+      </div>
+    </div>`).join('');
+}
+
+function generarSolicitud() {
+  const entidad = document.getElementById('entidad-info').value;
+  showToast('📄 Solicitud generada – lista para imprimir o enviar');
+}
+
+/* ── INIT ── */
+initTriaje();
+renderArticulos();
+renderCanales();
+</script>
+</body>
+</html>
